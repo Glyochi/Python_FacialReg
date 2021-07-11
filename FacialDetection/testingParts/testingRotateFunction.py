@@ -19,7 +19,8 @@ def rescaleFrame(frame, newWidth):
 def rotate(img, angle, rotPoint = None):
     (height, width) = img.shape[:2]
 
-    # Calculating the dimension of the new canvas to store the entire rotated image without cropping, diagAngleA is used to calculate fittingWidth, diagAngleB is for fittingHeight
+    # Calculating the dimension of the new canvas to store the entire rotated image without cropping, 
+    # diagAngleA is half the angle of the lowest angle created by the two diagonals. diagAngleB is half the angle of the rightest angle created by the two diagonals.
     diagLen = math.sqrt(width**2 + height**2)
     diagAngleA = math.atan(width/height)
     diagAngleB = math.pi/2 - diagAngleA

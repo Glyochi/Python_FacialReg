@@ -28,6 +28,7 @@ class Point:
         Translate the current point object by angle value clockwise relative to the given origin.
         """
         angle = angle % 360
+        # print("DEBUG angle ", angle)
         # Calculating the relative angle to the origin
         dist = self.distTo(origin)
         deltaX = self.x - origin.x
@@ -46,12 +47,20 @@ class Point:
             # the point is the origin, no need to translate
             return
         
+        # print("DEBUG deltaX ", deltaX)
+        # print("DEBUG deltaY ", deltaY)
+        # print("DEBUG relativeAngle ", relativeAngle)
 
         relativeAngle = (relativeAngle + angle + 360) % 360
         deltaX = math.cos(relativeAngle * math.pi / 180) * dist
         deltaY = math.sin(relativeAngle * math.pi / 180) * dist
         self.x = origin.x + deltaX
         self.y = origin.y + deltaY
+        # print("DEBUG new deltaX ", deltaX)
+        # print("DEBUG new deltaY ", deltaY)
+        # print("DEBUG newX ", self.x)
+        # print("DEBUG newY ", self.y)
+        # print("DEBUG relativeAngle ", relativeAngle)
 
     import math
 
