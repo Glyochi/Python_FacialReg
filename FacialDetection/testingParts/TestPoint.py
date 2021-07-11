@@ -1,6 +1,9 @@
 import unittest
 from math import sqrt
-from FacialDetection.Point import Point
+
+import sys
+sys.path.append('FacialDetection')
+from Point import Point
 
 class TestPointMethods(unittest.TestCase):
     def test_translateByAngleCounterClockwise_90(self):        
