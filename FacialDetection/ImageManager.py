@@ -1,10 +1,8 @@
-import math
 import cv2 as cv
+from Point import Point
+from DetectedArea import DetectedArea
+from rotate import *
 import numpy as np
-from numpy.lib.type_check import imag
-from FacialDetection.Point import Point
-from FacialDetection.DetectedArea import DetectedArea
-from FacialDetection.rotate import rotate
 
 
 """ 
@@ -37,19 +35,49 @@ class ImageManager:
             @param img: the image/frame that we will run facial detection on
         """
         # Blank canvas that we are going to use to store the rotated image
-        self.img = img
+        self.image = img
         self.eyes = []
         self.faces = []
         self.imageCenter = (img.shape[0]/2, img.shape[1]/2)
     
 
-    def runHaarDetection(self, haarDetection):
+    def runHaarDetection(self, detector):
         """
-        Run the given haarDetection on the image rotated by 0, 90, 180, 270 degree and return a 4-tuple of 4 arrays with corresponding angle that contain 
-        detected objects (coordinates are relative to the center of the rotated image and are not yet translated to coordinates relative to
-        the original non-rotated image)
-            @return a 4-tuple of 4 arrays containing all the detected objects.
+        Run the given haarDetection on the image rotated by 0, 90, 180, 270 degree and generate 4 arrays of corresponding angles that contain 
+        detected objects. These detected objects will be translated to have correct coordinates in the non-rotated image.
+            @param detector: the haarcascade object that is going to scan the image
+            @return a 4-tuple of 4 arrays containing all the translated coordinates of the detected objects in the image.
         """
+        AllObjects = []
+        grayImage = cv.cvtColor(self.image, cv.COLOR_BGR2GRAY)
+        
+
+        # finding objects in 90, 180, and 270 degree rotated image
+        for angle in [0, 90, 180, 270]:
+            rotatedGrayImage = rotateCounterClockwise(grayImage, angle)
+            
+            # Collecting raw detected objects received from detectMultiScale
+            rawObjs = detector.detectMultiScale(rotatedGrayImage, scaleFactor = 1.05, minNeighbour = 3)
+            
+            translatedObjs = []
+            rotatedCenter = Point(rotatedGrayImage.shape[1]/2, rotatedGrayImage.shape[0]/2)
+
+            for obj in rawObjs:
+                # Conver raw information into DetectedArea obj
+                area = DetectedArea((obj.shape[0], obj.shape[1]), (obj.shape[2], obj.shape[3]))
+                
+                # Translate the coordinates to the coordinates in the non-rotated image
+                area.rotateAreaClockwise(angle)
+                area.projectRectangle(rotatedCenter, self.imageCenter)
+
+                # Put the translated DetectedArea into translatedObj array
+                translatedObjs.append(area)
+
+            # Put the translated array into the 4-tuple list
+            AllObjects.append(translatedObjs)
+
+        return AllObjects    
+            
 
     def mergeDetectedObjs(self, four_tuple):
         """
@@ -58,7 +86,33 @@ class ImageManager:
             @return an array that contains all the unique detected objects.
         """
         (array0, array90, array180, array270) = four_tuple
+        
+        ###########################################################################################
+        # NO TESTING DONE # NO TESTING DONE # NO TESTING DONE # NO TESTING DONE # NO TESTING DONE #
+        ###########################################################################################
 
+        for i in len(array0) - 1:
+            for j in (i + 1, len(array0)):
+                if array0[i].similarSize(array0[j]) and array0[i].overlap(array0[j]):
+                        array0[i].merge(array0[j])
+                        array0.pop(j)
+                        j = j - 1
+
+        for array in (array90, array180, array270):
+            for area in array:
+                matched = False
+                # Scan through the array to find matches
+                for area0 in array0:
+                    if area0.similarSize(area) and area0.overlap(area):
+                        area0.merge(area)
+                        matched = True
+                        break
+                
+                # if didnt find any matches then append it onto array0
+                if matched == False:
+                    array0.append(area)    
+        
+        return array0
 
 
 
@@ -70,3 +124,7 @@ class ImageManager:
         Collect all the detected eyes and remove duplicates. 
             @return an array of detected eyes
         """
+        return self.mergeDetectedObjs(self.runHaarDetection(self.haarcascade_eye)
+
+
+)

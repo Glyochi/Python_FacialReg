@@ -57,7 +57,7 @@ cv.imshow('Rotated dog1', rotated)
 
 
 # Cropping
-cropped = img[200:400, 300:400]
-cv.imshow('Cropped Dog1', cropped)
+img[300:500, 600:700] = img[200:400, 300:400]
+cv.imshow('Cropped Dog1', img)
 
 cv.waitKey(0)

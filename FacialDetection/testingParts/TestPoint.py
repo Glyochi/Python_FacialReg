@@ -6,200 +6,293 @@ sys.path.append('FacialDetection')
 from Point import Point
 
 class TestPointMethods(unittest.TestCase):
-    def test_translateByAngleCounterClockwise_90(self):        
+
+    def test_distTo(self):
+        for x in range (-10, 10):
+            for y in range (-10, 10):
+                for j in range (-10, 10):
+                    for k in range (-10, 10):
+                        a = Point(x, y)
+                        b = Point(j, k)
+                        distance = sqrt((x - j)**2 + (y - k)**2)
+                        self.assertEqual(distance, a.distTo(b), "distTo function is dead")
+
+    
+    def test_projectPoint(self):
+        
+        a = Point(5, 5)
+        b = Point(1, 2)
+        c = Point( 16, 2)
+        d = a.projectPoint(b, c)
+        self.assertEqual(20, d.x, "projectPoint x is wrong")
+        self.assertEqual(5, d.y, "projectPoint y is wrong")
+                
+    def test_translateByAngle_90(self):        
         #Check rotate by 90 degree
         
-        msg = "Rotated by 90 degree counter-clockwise"
+        msg1 = "Rotated by 90 degree counter-clockwise"
+        msg2 = "Rotated by 90 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
         
-        a.translateByAngleCounterClockwise(b, 90)
-        self.assertAlmostEqual(-1, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(1, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, 90)
+        self.assertAlmostEqual(-1, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, 90)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
         
-        a.translateByAngleCounterClockwise(b, 90)
-        self.assertAlmostEqual(2, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(4, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, 90)
+        self.assertAlmostEqual(2, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+
+        a = a.rotatePointClockwise(b, 90)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
 
-    def test_translateByAngleCounterClockwise_180(self):  
+    def test_translateByAngle_180(self):  
         #Check rotate by 180 degree
         
-        msg = "Rotated by 180 degree counter-clockwise"
+        msg1 = "Rotated by 180 degree counter-clockwise"
+        msg2 = "Rotated by 180 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
         
-        a.translateByAngleCounterClockwise(b, 180)
-        self.assertAlmostEqual(-1, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(-1, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, 180)
+        self.assertAlmostEqual(-1, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(-1, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+
+        a = a.rotatePointClockwise(b, 180)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
         
-        a.translateByAngleCounterClockwise(b, 180)
-        self.assertAlmostEqual(2, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(2, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, 180)
+        self.assertAlmostEqual(2, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(2, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, 180)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
  
-    def test_translateByAngleCounterClockwise_270(self):        
+    def test_translateByAngle_270(self):        
         #Check rotate by 270 degree
         
-        msg = "Rotated by 270 degree counter-clockwise"
+        msg1 = "Rotated by 270 degree counter-clockwise"
+        msg2 = "Rotated by 270 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
         
-        a.translateByAngleCounterClockwise(b, 270)
-        self.assertAlmostEqual(1, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(-1, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, 270)
+        self.assertAlmostEqual(1, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(-1, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, 270)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
         
-        a.translateByAngleCounterClockwise(b, 270)
-        self.assertAlmostEqual(4, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(2, a.y, 8, msg + " " + case + ": y coordinate is wrong")   
+        a = a.rotatePointCounterClockwise(b, 270)
+        self.assertAlmostEqual(4, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(2, a.y, 8, msg1 + " " + case + ": y coordinate is wrong") 
+        
+        a = a.rotatePointClockwise(b, 270)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")   
        
    
-    def test_translateByAngleCounterClockwise_360(self):      
+    def test_translateByAngle_360(self):      
         #Check rotate by 360 degree
 
-        msg = "Rotated by 360 degree counter-clockwise"
+        msg1 = "Rotated by 360 degree counter-clockwise"
+        msg2 = "Rotated by 360 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
 
-        a.translateByAngleCounterClockwise(b, 360)
-        self.assertAlmostEqual(1, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(1, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, 360)
+        self.assertAlmostEqual(1, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+
+        a = a.rotatePointClockwise(b, 360)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
 
-        a.translateByAngleCounterClockwise(b, 360)
-        self.assertAlmostEqual(4, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(4, a.y, 8, msg + " " + case + ": y coordinate is wrong")       
+        a = a.rotatePointCounterClockwise(b, 360)
+        self.assertAlmostEqual(4, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")    
+
+        a = a.rotatePointClockwise(b, 360)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")       
 
 
 #########################################################################################################################
 #########################################################################################################################
 
 
-    def test_translateByAngleCounterClockwise_45(self):        
+    def test_translateByAngle_45(self):        
         #Check rotate by 45 degree
         
-        msg = "Rotated by 45 degree counter-clockwise"
+        msg1 = "Rotated by 45 degree counter-clockwise"
+        msg2 = "Rotated by 45 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
         
-        a.translateByAngleCounterClockwise(b, 45)
-        self.assertAlmostEqual(0, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(sqrt(2), a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, 45)
+        self.assertAlmostEqual(0, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(sqrt(2), a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, 45)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
         
-        a.translateByAngleCounterClockwise(b, 45)
-        self.assertAlmostEqual(3, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(3 + sqrt(2), a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, 45)
+        self.assertAlmostEqual(3, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(3 + sqrt(2), a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, 45)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
 
-    def test_translateByAngleCounterClockwise_135(self):  
+    def test_translateByAngle_135(self):  
         #Check rotate by 135 degree
         
-        msg = "Rotated by 135 degree counter-clockwise"
+        msg1 = "Rotated by 135 degree counter-clockwise"
+        msg2 = "Rotated by 135 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
         
-        a.translateByAngleCounterClockwise(b, 135)
-        self.assertAlmostEqual(-sqrt(2), a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(0, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, 135)
+        self.assertAlmostEqual(-sqrt(2), a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(0, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, 135)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
         
-        a.translateByAngleCounterClockwise(b, 135)
-        self.assertAlmostEqual(3 - sqrt(2), a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(3, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, 135)
+        self.assertAlmostEqual(3 - sqrt(2), a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(3, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, 135)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
  
-    def test_translateByAngleCounterClockwise_225(self):        
+    def test_translateByAngle_225(self):        
         #Check rotate by 225 degree
         
-        msg = "Rotated by 225 degree counter-clockwise"
+        msg1 = "Rotated by 225 degree counter-clockwise"
+        msg2 = "Rotated by 225 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
         
-        a.translateByAngleCounterClockwise(b, 225)
-        self.assertAlmostEqual(0, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(-sqrt(2), a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, 225)
+        self.assertAlmostEqual(0, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(-sqrt(2), a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, 225)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
         
-        a.translateByAngleCounterClockwise(b, 225)
-        self.assertAlmostEqual(3, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(3 - sqrt(2), a.y, 8, msg + " " + case + ": y coordinate is wrong")   
+        a = a.rotatePointCounterClockwise(b, 225)
+        self.assertAlmostEqual(3, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(3 - sqrt(2), a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, 225)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")   
        
    
-    def test_translateByAngleCounterClockwise_315(self):      
+    def test_translateByAngle_315(self):      
         #Check rotate by 315 degree
 
-        msg = "Rotated by 315 degree counter-clockwise"
+        msg1 = "Rotated by 315 degree counter-clockwise"
+        msg2 = "Rotated by 315 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
 
-        a.translateByAngleCounterClockwise(b, 315)
-        self.assertAlmostEqual(sqrt(2), a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(0, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, 315)
+        self.assertAlmostEqual(sqrt(2), a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(0, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+
+        a = a.rotatePointClockwise(b, 315)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
 
-        a.translateByAngleCounterClockwise(b, 315)
-        self.assertAlmostEqual(3 + sqrt(2), a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(3, a.y, 8, msg + " " + case + ": y coordinate is wrong")       
+        a = a.rotatePointCounterClockwise(b, 315)
+        self.assertAlmostEqual(3 + sqrt(2), a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(3, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")    
+
+        a = a.rotatePointClockwise(b, 315)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")       
 
 
 
@@ -207,200 +300,272 @@ class TestPointMethods(unittest.TestCase):
 #########################################################################################################################
 
         
-    def test_translateByAngleCounterClockwise_neg90(self):        
+    def test_translateByAngle_neg90(self):        
         #Check rotate by -90 degree
         
-        msg = "Rotated by -90 degree counter-clockwise"
+        msg1 = "Rotated by -90 degree counter-clockwise"
+        msg2 = "Rotated by -90 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
         
-        a.translateByAngleCounterClockwise(b, -90)
-        self.assertAlmostEqual(1, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(-1, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, -90)
+        self.assertAlmostEqual(1, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(-1, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, -90)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
         
-        a.translateByAngleCounterClockwise(b, -90)
-        self.assertAlmostEqual(4, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(2, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, -90)
+        self.assertAlmostEqual(4, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(2, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, -90)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
 
-    def test_translateByAngleCounterClockwise_neg180(self):  
+    def test_translateByAngle_neg180(self):  
         #Check rotate by -180 degree
         
-        msg = "Rotated by -180 degree counter-clockwise"
+        msg1 = "Rotated by -180 degree counter-clockwise"
+        msg2 = "Rotated by -180 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
         
-        a.translateByAngleCounterClockwise(b, -180)
-        self.assertAlmostEqual(-1, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(-1, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, -180)
+        self.assertAlmostEqual(-1, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(-1, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, -180)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
         
-        a.translateByAngleCounterClockwise(b, -180)
-        self.assertAlmostEqual(2, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(2, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, -180)
+        self.assertAlmostEqual(2, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(2, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, -180)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
  
-    def test_translateByAngleCounterClockwise_neg270(self):        
+    def test_translateByAngle_neg270(self):        
         #Check rotate by -270 degree
         
-        msg = "Rotated by -270 degree counter-clockwise"
+        msg1 = "Rotated by -270 degree counter-clockwise"
+        msg2 = "Rotated by -270 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
         
-        a.translateByAngleCounterClockwise(b, -270)
-        self.assertAlmostEqual(-1, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(1, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, -270)
+        self.assertAlmostEqual(-1, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, -270)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
         
-        a.translateByAngleCounterClockwise(b, -270)
-        self.assertAlmostEqual(2, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(4, a.y, 8, msg + " " + case + ": y coordinate is wrong")   
+        a = a.rotatePointCounterClockwise(b, -270)
+        self.assertAlmostEqual(2, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg1 + " " + case + ": y coordinate is wrong") 
+        
+        a = a.rotatePointClockwise(b, -270)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")   
        
    
-    def test_translateByAngleCounterClockwise_neg360(self):      
+    def test_translateByAngle_neg360(self):      
         #Check rotate by -360 degree
 
-        msg = "Rotated by -360 degree counter-clockwise"
+        msg1 = "Rotated by -360 degree counter-clockwise"
+        msg2 = "Rotated by -360 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
 
-        a.translateByAngleCounterClockwise(b, -360)
-        self.assertAlmostEqual(1, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(1, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, -360)
+        self.assertAlmostEqual(1, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+
+        a = a.rotatePointClockwise(b, -360)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
 
-        a.translateByAngleCounterClockwise(b, -360)
-        self.assertAlmostEqual(4, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(4, a.y, 8, msg + " " + case + ": y coordinate is wrong")       
+        a = a.rotatePointCounterClockwise(b, -360)
+        self.assertAlmostEqual(4, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")     
+
+        a = a.rotatePointClockwise(b, -360)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")       
 
 
 #########################################################################################################################
 #########################################################################################################################
 
 
-    def test_translateByAngleCounterClockwise_neg45(self):        
+    def test_translateByAngle_neg45(self):        
         #Check rotate by -45 degree
         
-        msg = "Rotated by -45 degree counter-clockwise"
+        msg1 = "Rotated by -45 degree counter-clockwise"
+        msg2 = "Rotated by -45 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
         
-        a.translateByAngleCounterClockwise(b, -45)
-        self.assertAlmostEqual(sqrt(2), a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(0, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, -45)
+        self.assertAlmostEqual(sqrt(2), a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(0, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, -45)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
         
-        a.translateByAngleCounterClockwise(b, -45)
-        self.assertAlmostEqual(3 + sqrt(2), a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(3, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, -45)
+        self.assertAlmostEqual(3 + sqrt(2), a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(3, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, -45)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
 
-    def test_translateByAngleCounterClockwise_neg135(self):  
+    def test_translateByAngle_neg135(self):  
         #Check rotate by -135 degree
         
-        msg = "Rotated by -135 degree counter-clockwise"
+        msg1 = "Rotated by -135 degree counter-clockwise"
+        msg2 = "Rotated by -135 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
         
-        a.translateByAngleCounterClockwise(b, -135)
-        self.assertAlmostEqual(0, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(-sqrt(2), a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, -135)
+        self.assertAlmostEqual(0, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(-sqrt(2), a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, -135)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
         
-        a.translateByAngleCounterClockwise(b, -135)
-        self.assertAlmostEqual(3, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(3 - sqrt(2), a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, -135)
+        self.assertAlmostEqual(3, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(3 - sqrt(2), a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, -135)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
  
-    def test_translateByAngleCounterClockwise_neg225(self):        
+    def test_translateByAngle_neg225(self):        
         #Check rotate by -225 degree
         
-        msg = "Rotated by -225 degree counter-clockwise"
+        msg1 = "Rotated by -225  degree counter-clockwise"
+        msg2 = "Rotated by -225 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
         
-        a.translateByAngleCounterClockwise(b, -225)
-        self.assertAlmostEqual(-sqrt(2), a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(0, a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, -225)
+        self.assertAlmostEqual(-sqrt(2), a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(0, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+        
+        a = a.rotatePointClockwise(b, -225)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
         
-        a.translateByAngleCounterClockwise(b, -225)
-        self.assertAlmostEqual(3 - sqrt(2), a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(3, a.y, 8, msg + " " + case + ": y coordinate is wrong")   
+        a = a.rotatePointCounterClockwise(b, -225)
+        self.assertAlmostEqual(3 - sqrt(2), a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(3, a.y, 8, msg1 + " " + case + ": y coordinate is wrong")  
+        
+        a = a.rotatePointClockwise(b, -225)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")   
        
    
-    def test_translateByAngleCounterClockwise_neg315(self):      
+    def test_translateByAngle_neg315(self):      
         #Check rotate by -315 degree
 
-        msg = "Rotated by -315 degree counter-clockwise"
+        msg1 = "Rotated by -315 degree counter-clockwise"
+        msg2 = "Rotated by -315 degree clockwise"
 
         #Case 1
         case = "CASE 1"
         a = Point(1,1)
         b = Point(0,0)
 
-        a.translateByAngleCounterClockwise(b, -315)
-        self.assertAlmostEqual(0, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(sqrt(2), a.y, 8, msg + " " + case + ": y coordinate is wrong")
+        a = a.rotatePointCounterClockwise(b, -315)
+        self.assertAlmostEqual(0, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(sqrt(2), a.y, 8, msg1 + " " + case + ": y coordinate is wrong")
+
+        a = a.rotatePointClockwise(b, -315)
+        self.assertAlmostEqual(1, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(1, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")
 
         #Case 2
         case = "CASE 2"
         a = Point(4, 4)
         b = Point(3, 3)
 
-        a.translateByAngleCounterClockwise(b, -315)
-        self.assertAlmostEqual(3, a.x, 8, msg + " " + case + ": x coordinate is wrong")
-        self.assertAlmostEqual(3 + sqrt(2), a.y, 8, msg + " " + case + ": y coordinate is wrong")       
+        a = a.rotatePointCounterClockwise(b, -315)
+        self.assertAlmostEqual(3, a.x, 8, msg1 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(3 + sqrt(2), a.y, 8, msg1 + " " + case + ": y coordinate is wrong")     
+
+        a = a.rotatePointClockwise(b, -315)
+        self.assertAlmostEqual(4, a.x, 8, msg2 + " " + case + ": x coordinate is wrong")
+        self.assertAlmostEqual(4, a.y, 8, msg2 + " " + case + ": y coordinate is wrong")       
 
 
 
