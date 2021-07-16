@@ -72,7 +72,7 @@ class DetectedArea:
         minSize = min(thisSize, otherSize)
         maxSize = max(thisSize, otherSize)
 
-        if min > max * 0.7:
+        if minSize > maxSize * 0.7:
             return True
         return False
 
