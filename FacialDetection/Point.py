@@ -8,8 +8,8 @@ class Point:
     def __init__(self, xCoord, yCoord, angle = 0):
         """ 
         Construct a point object.
-            @param xCoord: the x coordinate.
-            @param yCoord: the y coordinate.
+            :param xCoord: the x coordinate.
+            :param yCoord: the y coordinate.
         """
         self.x = xCoord
         self.y = yCoord
@@ -17,21 +17,21 @@ class Point:
     def getX(self):
         """
         Return the point's x coordinate
-            @return x coordinate
+            :return x coordinate
         """
         return self.x
         
     def getY(self):
         """
         Return the point's y coordinate
-            @return y coordinate
+            :return y coordinate
         """
         return self.y
 
     def distTo(self, otherPoint):
         """
         Calculate the distance from the current point to the other point.
-            @return the distance between two points.
+            :return the distance between two points.
         """
         distance = math.sqrt((self.x - otherPoint.x)**2 + (self.y - otherPoint.y)**2)
         return distance
@@ -39,9 +39,9 @@ class Point:
     def rotatePointCounterClockwise(self, origin, angle):
         """
         Rotate the current point object by angle value counter-clockwise relative to the given origin.
-            @param origin: the point where the function caller point object is going to rotate around
-            @param angle: the angle the function caller point object is going to be rotated by
-            @return the rotated point as a separated object
+            :param origin: the point where the function caller point object is going to rotate around
+            :param angle: the angle the function caller point object is going to be rotated by
+            :return the rotated point as a separated object
         """
         angle = angle % 360
         if angle == 0: 
@@ -76,9 +76,9 @@ class Point:
     def rotatePointClockwise(self, origin, angle):
         """
         Translate the current point object by angle value clockwise relative to the given origin.
-            @param origin: the point where the function caller point object is going to rotate around
-            @param angle: the angle the function caller point object is going to be rotated by
-            @return the rotatedPoint as a separated object
+            :param origin: the point where the function caller point object is going to rotate around
+            :param angle: the angle the function caller point object is going to be rotated by
+            :return the rotatedPoint as a separated object
         """
         return self.rotatePointCounterClockwise(origin, -angle)
 
@@ -87,9 +87,9 @@ class Point:
         Calculate the position of a new point such that its position relative to newOrigin is the same as its 
         current relative position to old Origin.
         exp: current point is (1,1), oldOrigin is (0,0), and new origin is (2,0) => returned point is (3,1)
-            @param oldOrigin: the old origin point
-            @param newOrigin: the projected old Origin
-            @return the projected current point such that its position relative to newOrigin is the same as current point to oldOrigin
+            :param oldOrigin: the old origin point
+            :param newOrigin: the projected old Origin
+            :return the projected current point such that its position relative to newOrigin is the same as current point to oldOrigin
         """
 
         projectedX = self.x + newOrigin.x - oldOrigin.x

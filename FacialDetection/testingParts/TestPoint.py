@@ -7,6 +7,8 @@ from Point import Point
 
 class TestPointMethods(unittest.TestCase):
 
+
+
     def test_distTo(self):
         for x in range (-10, 10):
             for y in range (-10, 10):
