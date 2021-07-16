@@ -8,9 +8,9 @@ def rotateClockwise(img, angle):
     """
     This functions return a clockwise rotated image without cropping any part of the original image and keeping the center of the original 
     image at the center of the new rotated image. The returned image may have larger dimensions than the original but as small as possible.
-        @param img: the original image
-        @param angle: the rotating angle clockwise
-        @return: the rotated-around-the-center image without cropping
+        :param img: the original image
+        :param angle: the rotating angle clockwise
+        :return: the rotated-around-the-center image without cropping
     """
     angle = -angle
     return rotateCounterClockwise(img,)
@@ -20,9 +20,9 @@ def rotateCounterClockwise(img, angle):
     """
     This functions return a counter-clockwise rotated image without cropping any part of the original image and keeping the center of the original 
     image at the center of the new rotated image. The returned image may have larger dimensions than the original but as small as possible.
-        @param img: the original image
-        @param angle: the rotating angle counter-clockwise
-        @return: the rotated-around-the-center image without cropping
+        :param img: the original image
+        :param angle: the rotating angle counter-clockwise
+        :return: the rotated-around-the-center image without cropping
     """
     (height, width) = img.shape[:2]
 
@@ -48,8 +48,12 @@ def rotateCounterClockwise(img, angle):
     # Drawing pre rotated image ontop of bigger canvas
     # rotatedCanvas initially takes the largest horizontal/vertical value among newWidth, newHeight, img.shape[1], img.shape[2] to prevent the image from cropping and index out of bound
     # Once the image is rotated on rotatedCanvas, we will crop out the excess part
-    rotatedCanvas = np.zeros((max(fittingHeight, img.shape[0]), max(fittingWidth, img.shape[1])), dtype='uint8')
-    rotatedCanvas[math.floor(rotatedCanvas.shape[0]/2 - img.shape[0]/2): math.floor(rotatedCanvas.shape[0]/2 + img.shape[0]/2), math.floor(rotatedCanvas.shape[1]/2 - img.shape[1]/2): math.floor(rotatedCanvas.shape[1]/2 + img.shape[1]/2)] = img
+    try:
+        rotatedCanvas = np.zeros((max(fittingHeight, img.shape[0]), max(fittingWidth, img.shape[1]), 3), dtype='uint8')
+        rotatedCanvas[math.floor(rotatedCanvas.shape[0]/2 - img.shape[0]/2): math.floor(rotatedCanvas.shape[0]/2 + img.shape[0]/2), math.floor(rotatedCanvas.shape[1]/2 - img.shape[1]/2): math.floor(rotatedCanvas.shape[1]/2 + img.shape[1]/2)] = img
+    except:
+        rotatedCanvas = np.zeros((max(fittingHeight, img.shape[0]), max(fittingWidth, img.shape[1])), dtype='uint8')
+        rotatedCanvas[math.floor(rotatedCanvas.shape[0]/2 - img.shape[0]/2): math.floor(rotatedCanvas.shape[0]/2 + img.shape[0]/2), math.floor(rotatedCanvas.shape[1]/2 - img.shape[1]/2): math.floor(rotatedCanvas.shape[1]/2 + img.shape[1]/2)] = img
     # rotatedCanvas[100:200,400:500] = 0,255,0
     # [upper height bound: lower height bound, left width bound: right width bound]
     # cv.imshow("Test draw on cavnas before rotate", rescaleFrame(rotatedCanvas, 500))
@@ -69,4 +73,26 @@ def rotateCounterClockwise(img, angle):
 
 
 
+# Resize
+def resizeToMin500(img):
+    """
+    Create a resized clone of the original image such that the smaller dimension of the image = 500px, and the other dimension is kept to scale
+        :param img: the image need to be resized
+        :return a resized copy of the iamge
+    """
+    
+    (height, width) = img.shape[:2]
+
+    resizedImage = img.copy()
+
+    if height < width:
+        width = int(width * 500/ height)
+        height = 500
+        
+    else:
+        height = int(height * 500/ width)
+        width = 500
+        
+    dimensions = (width, height)
+    return cv.resize(resizedImage, dimensions, interpolation=cv.INTER_AREA)
 
