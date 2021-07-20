@@ -31,6 +31,9 @@ class ImageManager:
     """
     haarcascade_eye = cv.CascadeClassifier("classifier/haarcascade_eye.xml")
     haarcascade_face = cv.CascadeClassifier("classifier/haarcascade_frontalface_default.xml")
+    similarSizeScale = 0.6
+    pairOfEyesDistanceRange = (1.5, 3.5)
+
     def __init__(self, img):
         """
         Constructing an ImageManger object
@@ -40,6 +43,7 @@ class ImageManager:
         self.image = img
         self.grayImage = cv.cvtColor(self.image, cv.COLOR_BGR2GRAY)
         self.imageCenter = Point(img.shape[1]/2, img.shape[0]/2)
+    
     
 
     def runHaarDetection(self, detector, scaleFactor, minNeighbors):
@@ -143,14 +147,11 @@ class ImageManager:
         others = []
         for i in range(1,len(tuple)):
             others.append(tuple[i])
-        
-        ###########################################################################################
-        # NO TESTING DONE # NO TESTING DONE # NO TESTING DONE # NO TESTING DONE # NO TESTING DONE #
-        ###########################################################################################
+
 
         for i in range(len(array0) - 1):
             for j in range(i + 1, len(array0)):
-                if array0[i].similarSize(array0[j]) and array0[i].overlap(array0[j]):
+                if array0[i].similarSize(array0[j], self.similarSizeScale) and array0[i].overlap(array0[j]):
                         array0[i].merge(array0[j])
                         array0.pop(j)
                         j = j - 1
@@ -160,7 +161,7 @@ class ImageManager:
                 matched = False
                 # Scan through the array to find matches
                 for area0 in array0:
-                    if area0.similarSize(area) and area0.overlap(area):
+                    if area0.similarSize(area, self.similarSizeScale) and area0.overlap(area):
                         area0.merge(area)
                         matched = True
                         break
@@ -193,9 +194,9 @@ class ImageManager:
         
         for i in range(len(eyes) - 1):
             for j in range(i,len(eyes)):
-                if eyes[i].similarSize(eyes[j]):
+                if eyes[i].similarSize(eyes[j], self.similarSizeScale):
                     dist = eyes[i].center.distTo(eyes[j].center)
                     averageRadius = (eyes[i].center.distTo(eyes[i].upperLeft) + eyes[j].center.distTo(eyes[j].upperLeft))/2
-                    if dist < 4 * averageRadius and dist > 1.5 * averageRadius:
+                    if dist < self.pairOfEyesDistanceRange[1] * averageRadius and dist > self.pairOfEyesDistanceRange[0] * averageRadius:
                         pairOfEyes.append((eyes[i], eyes[j], averageRadius))
         return pairOfEyes

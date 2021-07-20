@@ -67,26 +67,26 @@ class DetectedArea:
             :param otherArea: the DetectedArea that we are going to check for overlap
             :return True/False
         """
-        # print("DetectedArea overlap: NOT FINALIZED CONDITION PARAMETERS")
+        print("DetectedArea overlap: NOT FINALIZED CONDITION PARAMETERS")
         distance = self.center.distTo(otherArea.center)
         if distance < (self.center.distTo(self.upperLeft) + otherArea.center.distTo(otherArea.upperLeft))/4:
             return True
         return False
     
-    def similarSize(self, otherArea):
+    def similarSize(self, otherArea, scale):
         """
         Compare the size with another area to see if the two DetectedAreas are similar. (NOT FINALIZED CONDITION PARAMETERS)
             :param otherArea: the DetectedArea that we are comparing to
+            :param scale: the smallest possible size the smaller area can be compared to the bigger area to be considered "similarSize"
             :return True/False
         """
-        # print("DetectedArea similarSize: NOT FINALIZED CONDITION PARAMETERS")
         thisSize = self.center.distTo(self.upperLeft)
         otherSize = otherArea.center.distTo(otherArea.upperLeft)
 
         minSize = min(thisSize, otherSize)
         maxSize = max(thisSize, otherSize)
 
-        if minSize > maxSize * 0.6:
+        if minSize > maxSize * scale:
             return True
         return False
 
