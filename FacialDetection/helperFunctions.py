@@ -96,3 +96,26 @@ def resizeToMin500(img):
     dimensions = (width, height)
     return cv.resize(resizedImage, dimensions, interpolation=cv.INTER_AREA)
 
+# Resize
+def resizeMinTo(img, size):
+    """
+    Create a resized clone of the original image such that the smaller dimension of the image = 500px, and the other dimension is kept to scale
+        :param img: the image need to be resized
+        :return a resized copy of the iamge
+    """
+    size = int(size)
+    (height, width) = img.shape[:2]
+
+    resizedImage = img.copy()
+
+    if height < width:
+        width = int(width * size/ height)
+        height = size
+        
+    else:
+        height = int(height * size/ width)
+        width = size
+        
+    dimensions = (width, height)
+    return cv.resize(resizedImage, dimensions, interpolation=cv.INTER_AREA)
+

@@ -1,5 +1,5 @@
 from Point import Point
-
+import cv2 as cv
 
 class DetectedArea:
     """
@@ -11,86 +11,111 @@ class DetectedArea:
     def __init__(self, upperLeftPoint, dimensions):
         """
         Construct a DetectedArea obj.
-            @param upperLeftPoint (x,y): the 2-tuple coordinates of the upper left point of the rectangle encapsulates detected objects.
-            @param angle: the angle of the image when the detected object was found and returned by openCV.
-            @param dimension (w,h): the dimension of the box encapsulates the detected object.
+            :param upperLeftPoint (x,y): the 2-tuple coordinates of the upper left point of the rectangle encapsulates detected objects.
+            :param angle: the angle of the image when the detected object was found and returned by openCV.
+            :param dimension (w,h): the dimension of the box encapsulates the detected object.
         """
         self.dimensions = dimensions
         self.upperLeft = Point(upperLeftPoint[0], upperLeftPoint[1])
+        self.upperRight = Point(upperLeftPoint[0] + dimensions[0], upperLeftPoint[1])
+        self.lowerRight = Point(upperLeftPoint[0] + dimensions[0], upperLeftPoint[1] + dimensions[1])
+        self.lowerLeft = Point(upperLeftPoint[0], upperLeftPoint[1] + dimensions[1])
         self.center = Point(upperLeftPoint[0] + dimensions[0]/2, upperLeftPoint[1] + dimensions[1]/2)
     
     def rotateAreaCounterClockwise(self, origin, angle):
         """
         Rotate the detectedArea object counter-clockwise around an origin by a given degree.
-            @param origin: the point where detectedArea is going to rotate around
-            @param angle: the angle the detectedArea is going to rotate by
+            :param origin: the point where detectedArea is going to rotate around
+            :param angle: the angle the detectedArea is going to rotate by
         """
-        self.upperLeft.rotatePointCounterClockwise(origin, angle)
-        self.center.rotatePointCounterClockwise(origin, angle)
+        self.upperLeft = self.upperLeft.rotatePointCounterClockwise(origin, angle)
+        self.upperRight = self.upperRight.rotatePointCounterClockwise(origin, angle)
+        self.lowerLeft = self.lowerLeft.rotatePointCounterClockwise(origin, angle)
+        self.lowerRight = self.lowerRight.rotatePointCounterClockwise(origin, angle)
+        self.center = self.center.rotatePointCounterClockwise(origin, angle)
+
+
 
     def rotateAreaClockwise(self, origin, angle):
         """
         Rotate the detectedArea object clockwise around an origin by a given degree.
-            @param origin: the point where detectedArea is going to rotate around
-            @param angle: the angle the detectedArea is going to rotate by
+            :param origin: the point where detectedArea is going to rotate around
+            :param angle: the angle the detectedArea is going to rotate by
         """
-        self.upperLeft.rotatePointClockwise(origin, angle)
-        self.center.rotatePointClockwise(origin, angle)
+        self.upperLeft = self.upperLeft.rotatePointClockwise(origin, angle)
+        self.upperRight = self.upperRight.rotatePointClockwise(origin, angle)
+        self.lowerLeft = self.lowerLeft.rotatePointClockwise(origin, angle)
+        self.lowerRight = self.lowerRight.rotatePointClockwise(origin, angle)
+        self.center = self.center.rotatePointClockwise(origin, angle)
         
-    def projectRectangle(self, oldOrigin, newOrigin):
+    def projectArea(self, oldOrigin, newOrigin):
         """
         Project the rectangle such that its new position relative to newOrigin is 
         the same as its current relative position to oldOrigin.
-            @param oldOrigin: the old origin point
-            @param newOrigin: the projected old Origin
-        """
-        self.center = self.center.projectPoint(oldOrigin, newOrigin)
+            :param oldOrigin: the old origin point
+            :param newOrigin: the projected old Origin
+        """        
         self.upperLeft = self.upperLeft.projectPoint(oldOrigin, newOrigin)
+        self.upperRight = self.upperRight.projectPoint(oldOrigin, newOrigin)
+        self.lowerLeft = self.lowerLeft.projectPoint(oldOrigin, newOrigin)
+        self.lowerRight = self.lowerRight.projectPoint(oldOrigin, newOrigin)
+        self.center = self.center.projectPoint(oldOrigin, newOrigin)
 
     def overlap(self, otherArea):
         """
         Check for overlap between two detectedAreas. (NOT FINALIZED CONDITION PARAMETERS)
-            @param otherArea: the DetectedArea that we are going to check for overlap
-            @return True/False
+            :param otherArea: the DetectedArea that we are going to check for overlap
+            :return True/False
         """
-        print("DetectedArea overlap: NOT FINALIZED CONDITION PARAMETERS")
+        # print("DetectedArea overlap: NOT FINALIZED CONDITION PARAMETERS")
         distance = self.center.distTo(otherArea.center)
-        if distance < (self.center.distTo(self.upperLeft) + otherArea.center.distTo(otherArea.upperLeft))/2:
+        if distance < (self.center.distTo(self.upperLeft) + otherArea.center.distTo(otherArea.upperLeft))/4:
             return True
         return False
     
     def similarSize(self, otherArea):
         """
         Compare the size with another area to see if the two DetectedAreas are similar. (NOT FINALIZED CONDITION PARAMETERS)
-            @param otherArea: the DetectedArea that we are comparing to
-            @return True/False
+            :param otherArea: the DetectedArea that we are comparing to
+            :return True/False
         """
-        print("DetectedArea similarSize: NOT FINALIZED CONDITION PARAMETERS")
+        # print("DetectedArea similarSize: NOT FINALIZED CONDITION PARAMETERS")
         thisSize = self.center.distTo(self.upperLeft)
         otherSize = otherArea.center.distTo(otherArea.upperLeft)
 
         minSize = min(thisSize, otherSize)
         maxSize = max(thisSize, otherSize)
 
-        if minSize > maxSize * 0.7:
+        if minSize > maxSize * 0.6:
             return True
         return False
 
     def merge(self, otherArea):
         """
-        Merge another area into itself to make a bigger area. This does not delete the other area object. (NOT FINALIZED CONDITION PARAMETERS)
-            @param otherArea: the DetectedArea that we are merging with
+        Merge another area into itself to make a more accurate area. This does not delete the other area object. (NOT FINALIZED CONDITION PARAMETERS)
+            :param otherArea: the DetectedArea that we are merging with
         """
-        print("DetectedArea merge: NOT FINALIZED CONDITION PARAMETERS")
-        # For right now, we just use the bigger area
+        # print("DetectedArea merge: NOT FINALIZED CONDITION PARAMETERS")
+        # For right now, we just use the one with the smaller radius
+
+        if self.center.distTo(self.upperLeft) > otherArea.center.distTo(otherArea.upperLeft):
+            self = otherArea
         
-        thisSize = self.center.distTo(self.upperLeft)
-        otherSize = otherArea.center.distTo(otherArea.upperLeft)
-        if otherSize > thisSize:
-            self.center = otherArea.center
-            self.upperLeft = otherArea.upperLeft
-            self.dimensions = otherArea.dimensions
         
 
-
-
+    def draw(self, canvas, color, thickness):
+        """
+        Draw the shape of the detectedArea on top of the given image with specified color and thickness
+            :param canvas: the given image to be drawn over
+            :param color: the BGR-color specified for the detectedArea object
+            :param thickness: the specified thickness of the detectedArea object
+        """
+        upperLeft = self.upperLeft.exportCoordinates()
+        upperRight = self.upperRight.exportCoordinates()
+        lowerLeft = self.lowerLeft.exportCoordinates()
+        lowerRight = self.lowerRight.exportCoordinates()
+        canvas = cv.line(canvas, upperLeft, upperRight, color, thickness = thickness)
+        canvas = cv.line(canvas, upperRight, lowerRight, color, thickness = thickness)
+        canvas = cv.line(canvas, lowerRight, lowerLeft, color, thickness = thickness)
+        canvas = cv.line(canvas, lowerLeft, upperLeft, color, thickness = thickness)
+        

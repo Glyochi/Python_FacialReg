@@ -23,6 +23,8 @@ import numpy as np
     At the end, ImageManger should have an array list of all detected faces.
 
 """
+
+
 class ImageManager:
     """
     A manager that stores the actual image and can do image processing function on it. This object will be used to take care of facial detection.
@@ -37,7 +39,7 @@ class ImageManager:
         # Blank canvas that we are going to use to store the rotated image
         self.image = img
         self.grayImage = cv.cvtColor(self.image, cv.COLOR_BGR2GRAY)
-        self.imageCenter = Point(img.shape[0]/2, img.shape[1]/2)
+        self.imageCenter = Point(img.shape[1]/2, img.shape[0]/2)
     
 
     def runHaarDetection(self, detector, scaleFactor, minNeighbors):
@@ -52,25 +54,25 @@ class ImageManager:
         AllObjects = []        
 
         # finding objects in 90, 180, and 270 degree rotated image
-        for angle in [0, 90, 180, 270]:
-            
-            (detected, rotatedCenter) = self.runHaarDetectionAngle(detector, angle)
-            self.translateCoordinatesToOG(rotatedCenter, detected, angle, scaleFactor, minNeighbors)
+        for angle in [0, 45, 90, 135, 180, 225, 270]:
+            (detected, rotatedCenter) = self.runHaarDetectionCounterClockwiseAngle(detector, angle, scaleFactor = scaleFactor, minNeighbors = minNeighbors)
+            self.rotateDetectedAreaClockwise(detected, rotatedCenter, angle)
+            self.projectDetectedArea(detected, rotatedCenter)
             AllObjects.append(detected)
 
         return AllObjects    
 
 
     
-    def runHaarDetectionAngle(self, detector, angle, scaleFactor, minNeighbors):
+    def runHaarDetectionCounterClockwiseAngle(self, detector, angle, scaleFactor, minNeighbors):
         """
-        Run the given haarDetection on the image rotated by the given degree and generate 1 array that contain detected objects 
-        with corresponding angle. These detected objects will be translated to have correct coordinates in the non-rotated image.
+        Run the given haarDetection on the image rotated by the given angle and generate 1 array that 
+        contain detected objects found.         
             :param detector: the haarcascade object that is going to scan the image
             :param angle: the angle by which the image is rotated
             :param scaleFactor: scaleFactor parameter for detectMultiScale function
             :param minNeighbors: minNeighbors parameter for detectMultiScale function
-            :return a 2-tuple with the first element being an array containing all the relative coordinates of the detected objects in the rotated image,
+            :return a 2-tuple with the first element being an array containing all the raw coordinates of the detected objects in the rotated image,
             and the second element the Point object containing the coordinates of the center of the rotated image.
         """
 
@@ -83,7 +85,7 @@ class ImageManager:
         # Collecting raw detected objects received from detectMultiScale
         rawObjs = detector.detectMultiScale(rotatedGrayImage, scaleFactor = scaleFactor, minNeighbors = minNeighbors)
             
-        translatedObjs = []
+        detectedAreas = []
         rotatedCenter = Point(rotatedGrayImage.shape[1]/2, rotatedGrayImage.shape[0]/2)
 
         for obj in rawObjs:
@@ -91,16 +93,16 @@ class ImageManager:
             area = DetectedArea((obj[0], obj[1]), (obj[2], obj[3]))
 
             # Put the translated DetectedArea into translatedObj array
-            translatedObjs.append(area)
+            detectedAreas.append(area)
 
-        return (translatedObjs, rotatedCenter)    
+        return (detectedAreas, rotatedCenter)    
 
 
-    def translateCoordinatesToOG(self, rotatedCenter, rawPositions, angle):
+    def rotateDetectedAreaClockwise(self, rawPositions, origin, angle):
         """
-        Translate the raw positions of the detectedAreas created using returned value of
-        haarCascadeObj.detectMultiScale to the position on the original image.
+        Rotate detectedAreas in rawPositions around the given origin
             :param rawPositions: the array that contains detectedAreas with raw values taken from detectMultiScale
+            :param origin: the origin which the detectedAreas are rotating around
             :param angle: the angle by which the image was rotated when detectMultiScale ran
             :return an array containing detectedAreas with translated coordinates in the non-rotated image
         """
@@ -110,21 +112,37 @@ class ImageManager:
 
         # Translate the coordinates to the coordinates in the non-rotated image
         for area in rawPositions:
-            area.rotateAreaClockwise(self.imageCenter, angle)
-            area.projectRectangle(rotatedCenter, self.imageCenter)
+            area.rotateAreaClockwise(origin, angle)
+
+        return rawPositions
+
+
+    def projectDetectedArea(self, rawPositions, rotatedCenter):
+        """
+        Project the raw positions such that the new positions relative to self.imageCenter is the same
+        as relative positions of the old Coordinates to rotatedCenter.
+            :param rawPositions: the array that contains detectedAreas
+            :return an array containing detectedAreas with projected coordinates
+        """
+        # Translate the coordinates to the coordinates in the non-rotated image
+        for area in rawPositions:
+            area.projectArea(rotatedCenter, self.imageCenter)
 
         return rawPositions
 
 
         
 
-    def mergeDetectedObjs(self, four_tuple):
+    def mergeDetectedObjs(self, tuple):
         """
         Given a four-tuple containing 4 arrays of detected objects, scan through all of them and if find two duplicates (similar detected objects with similar 
         sizes and positions), merge them and put all the unique detected object in an array. 
             :return an array that contains all the unique detected objects.
         """
-        (array0, array90, array180, array270) = four_tuple
+        array0 = tuple[0]
+        others = []
+        for i in range(1,len(tuple)):
+            others.append(tuple[i])
         
         ###########################################################################################
         # NO TESTING DONE # NO TESTING DONE # NO TESTING DONE # NO TESTING DONE # NO TESTING DONE #
@@ -137,7 +155,7 @@ class ImageManager:
                         array0.pop(j)
                         j = j - 1
 
-        for array in (array90, array180, array270):
+        for array in others:
             for area in array:
                 matched = False
                 # Scan through the array to find matches
@@ -154,16 +172,30 @@ class ImageManager:
         return array0
 
 
-
-
-
-    def findEyes(self):
+    def findPairsOfEyes(self, scaleFactor, minNeighbors):
         """
         Find the eyes in the image after applying haarcascade eye detection on the 0, 90, 180, and 270 degree rotated image. 
         Collect all the detected eyes and remove duplicates. 
-            :return an array of detected eyes
+            :return an array of detected unique eyes
         """
-        return self.mergeDetectedObjs(self.runHaarDetection(self.haarcascade_eye)
+        
+        return self.mergeDetectedObjs(self.runHaarDetection(self.haarcascade_eye, scaleFactor, minNeighbors))
 
 
-)
+    def findPairsOfEyes(self, scaleFactor, minNeighbors):
+        """
+        Find the pairs of eyes in the image after applying haarcascade eye detection on the 0, 90, 180, and 270 degree rotated image. 
+            :return 
+        """
+        
+        eyes = self.mergeDetectedObjs(self.runHaarDetection(self.haarcascade_eye, scaleFactor, minNeighbors))
+        pairOfEyes = []
+        
+        for i in range(len(eyes) - 1):
+            for j in range(i,len(eyes)):
+                if eyes[i].similarSize(eyes[j]):
+                    dist = eyes[i].center.distTo(eyes[j].center)
+                    averageRadius = (eyes[i].center.distTo(eyes[i].upperLeft) + eyes[j].center.distTo(eyes[j].upperLeft))/2
+                    if dist < 4 * averageRadius and dist > 1.5 * averageRadius:
+                        pairOfEyes.append((eyes[i], eyes[j], averageRadius))
+        return pairOfEyes
