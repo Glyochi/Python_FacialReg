@@ -14,6 +14,13 @@ class Point:
         self.x = xCoord
         self.y = yCoord
 
+    def exportCoordinates(self):
+        """
+        Return a tuple containing the x and y coordinates of the Point object
+            :return the tuple containing x and y coordinates
+        """
+        return (int(self.getX()), int(self.getY()))
+
     def getX(self):
         """
         Return the point's x coordinate
@@ -43,6 +50,7 @@ class Point:
             :param angle: the angle the function caller point object is going to be rotated by
             :return the rotated point as a separated object
         """
+
         angle = angle % 360
         if angle == 0: 
             return Point(self.x, self.y)
@@ -52,24 +60,30 @@ class Point:
         dist = self.distTo(origin)
         deltaX = self.x - origin.x
         deltaY = self.y - origin.y
-        if deltaX > 0:
-            relativeAngle = (math.atan(deltaY/deltaX) * 180/math.pi + 360) % 360
+        
+        
+        if deltaX > 0: 
+            # if the point is to the right of the origin
+            relativeAngle = (360 - (math.atan(deltaY/deltaX) * 180/math.pi)) % 360
         elif deltaX < 0:
-            relativeAngle = math.atan(deltaY/deltaX) * 180/math.pi + 180
-        elif deltaY > 0:
-            # edge case when deltaX = 0, deltaY > 0
-            relativeAngle = 90
-        elif deltaY < 0:
-            # edge case when deltaX = 0, deltaY < 0
-            relativeAngle = 270
-        else:
-            # the point is the origin, no need to translate
-            return Point(self.x, self.y)
+            # if the point is to the left of the origin
+            relativeAngle = 180 - (math.atan(deltaY/deltaX) * 180/math.pi)
+        elif deltaX == 0:
+            if deltaY > 0:
+                relativeAngle = 270
+            elif deltaY < 0:
+                relativeAngle = 90
+            else:
+                # the point is the origin, no need to translate
+                return Point(self.x, self.y)
         
 
         relativeAngle = (relativeAngle + angle + 360) % 360
         deltaX = math.cos(relativeAngle * math.pi / 180) * dist
-        deltaY = math.sin(relativeAngle * math.pi / 180) * dist
+        # negative sign cause sin positive when deltaY negative and vice versa
+        deltaY = - math.sin(relativeAngle * math.pi / 180) * dist
+         
+
         return Point(origin.x + deltaX, origin.y + deltaY)
         
     
@@ -91,7 +105,6 @@ class Point:
             :param newOrigin: the projected old Origin
             :return the projected current point such that its position relative to newOrigin is the same as current point to oldOrigin
         """
-
         projectedX = self.x + newOrigin.x - oldOrigin.x
         projectedY = self.y + newOrigin.y - oldOrigin.y
         return Point(projectedX, projectedY)
