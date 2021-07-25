@@ -14,6 +14,13 @@ class Point:
         self.x = xCoord
         self.y = yCoord
 
+    def copy(self):
+        """
+        Return a deep copy of itself
+            :return a deep copy of itself
+        """
+        return Point(self.x, self.y)
+        
     def exportCoordinates(self):
         """
         Return a tuple containing the x and y coordinates of the Point object
@@ -55,7 +62,6 @@ class Point:
         if angle == 0: 
             return Point(self.x, self.y)
 
-        # print("DEBUG angle ", angle)
         # Calculating the relative angle to the origin
         dist = self.distTo(origin)
         deltaX = self.x - origin.x
@@ -108,3 +114,31 @@ class Point:
         projectedX = self.x + newOrigin.x - oldOrigin.x
         projectedY = self.y + newOrigin.y - oldOrigin.y
         return Point(projectedX, projectedY)
+
+    
+    def relativeAngle(self, otherPoint):
+        """
+        Calculate the angle the otherPoint creates if the self Point was the origin.
+        The function ONLY return positive angle. If it returns -1 that means otherPoint
+        is the same as self.
+            :param otherPoint: the other Point object
+            :return the angle in degree
+        """
+        deltaX = otherPoint.x - self.x
+        deltaY = otherPoint.y - self.y
+        
+        if deltaX > 0: 
+            # if the point is to the right of the origin
+            relativeAngle = (360 - (math.atan(deltaY/deltaX) * 180/math.pi)) % 360
+        elif deltaX < 0:
+            # if the point is to the left of the origin
+            relativeAngle = 180 - (math.atan(deltaY/deltaX) * 180/math.pi)
+        elif deltaX == 0:
+            if deltaY > 0:
+                relativeAngle = 270
+            elif deltaY < 0:
+                relativeAngle = 90
+            else:
+                # the point is the origin, no need to translate
+                return -1
+        return relativeAngle

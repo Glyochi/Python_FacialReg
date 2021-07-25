@@ -20,13 +20,13 @@ eyes_rect = imgMngr.findPairsOfEyes(1.1, 10)
 print(f'Number of eyes found = {len(eyes_rect)}')
 
 for pair in eyes_rect:
-    print("-----------------------------------")
-    print(pair[0])
-    print(pair[1])
-    print(pair[2])
     pair[0].draw(image, (0,255,0), thickness= 2)
     pair[1].draw(image, (0,255,0), thickness= 2)
 
+faces_rect = imgMngr.findFacesUsingPairOfEyes(eyes_rect, 1.1, 10)
+
+# for face in faces_rect:
+#     face.draw(image, (0,0,255), thickness= 2)
 
 # og = cv.resize(og, dimensions, interpolation=cv.INTER_AREA)
 cv.imshow('Man', image)

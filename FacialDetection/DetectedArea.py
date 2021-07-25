@@ -8,7 +8,7 @@ class DetectedArea:
     OpenCV returns 4-tuples (x,y,w,h) of rectangle marking down where the detected objects are. These information will be translated to many DetectedArea objects.
     DetectedArea will be used to compare with other DetectedArea.
     """
-    def __init__(self, upperLeftPoint, dimensions):
+    def __init__(self, upperLeftPoint = (0,0), dimensions = (0,0)):
         """
         Construct a DetectedArea obj.
             :param upperLeftPoint (x,y): the 2-tuple coordinates of the upper left point of the rectangle encapsulates detected objects.
@@ -21,6 +21,20 @@ class DetectedArea:
         self.lowerRight = Point(upperLeftPoint[0] + dimensions[0], upperLeftPoint[1] + dimensions[1])
         self.lowerLeft = Point(upperLeftPoint[0], upperLeftPoint[1] + dimensions[1])
         self.center = Point(upperLeftPoint[0] + dimensions[0]/2, upperLeftPoint[1] + dimensions[1]/2)
+    
+    def copy(self):
+        """
+        Return a deep copy of the detectedArea caller
+            :return a deep copy of itself
+        """
+        copyArea = DetectedArea()
+        copyArea.dimensions = (self.dimensions[0], self.dimensions[1])
+        copyArea.upperLeft = self.upperLeft.copy()
+        copyArea.upperRight = self.upperRight.copy()
+        copyArea.lowerLeft = self.lowerLeft.copy()
+        copyArea.lowerRight = self.lowerRight.copy()
+        copyArea.center = self.center.copy()
+        return copyArea
     
     def rotateAreaCounterClockwise(self, origin, angle):
         """
@@ -67,7 +81,7 @@ class DetectedArea:
             :param otherArea: the DetectedArea that we are going to check for overlap
             :return True/False
         """
-        print("DetectedArea overlap: NOT FINALIZED CONDITION PARAMETERS")
+        # print("DetectedArea overlap: NOT FINALIZED CONDITION PARAMETERS")
         distance = self.center.distTo(otherArea.center)
         if distance < (self.center.distTo(self.upperLeft) + otherArea.center.distTo(otherArea.upperLeft))/4:
             return True

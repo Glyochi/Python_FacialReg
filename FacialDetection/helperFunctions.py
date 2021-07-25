@@ -13,7 +13,7 @@ def rotateClockwise(img, angle):
         :return: the rotated-around-the-center image without cropping
     """
     angle = -angle
-    return rotateCounterClockwise(img,)
+    return rotateCounterClockwise(img, angle)
 
 
 def rotateCounterClockwise(img, angle):
@@ -74,7 +74,7 @@ def rotateCounterClockwise(img, angle):
 
 
 # Resize
-def resizeToMin500(img):
+def resizeMinTo500(img):
     """
     Create a resized clone of the original image such that the smaller dimension of the image = 500px, and the other dimension is kept to scale
         :param img: the image need to be resized

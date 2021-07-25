@@ -1,6 +1,5 @@
 import cv2 as cv
 import math
-from datetime import datetime
 import numpy as np
 
 # Functions ---- Functions ---- Functions ---- Functions ---- Functions ---- Functions ---- Functions ---- Functions
@@ -49,7 +48,7 @@ capture = cv.VideoCapture('http://192.168.1.17:8080/video')
 while True:
     isTrue, frame = capture.read()
 
-    frame = cv.resize(frame, (500, (int)(frame.shape[0] * 500 /frame.shape[1])))
+    # frame = cv.resize(frame, (500, (int)(frame.shape[0] * 500 /frame.shape[1])))
 
     grayFrame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 

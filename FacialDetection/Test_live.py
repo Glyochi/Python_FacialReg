@@ -1,10 +1,11 @@
+from helperFunctions import resizeToMin500
 import cv2 as cv
 import math
 from datetime import datetime
 import numpy as np
 import sys
-sys.path.append('../FacialDetection')
-from FacialDetection.ImageManager import ImageManager
+sys.path.append('FacialDetection')
+from ImageManager import ImageManager
 
 #
 
@@ -24,16 +25,16 @@ capture = cv.VideoCapture('http://192.168.1.17:8080/video')
 while True:
     isTrue, frame = capture.read()
 
-    frame = cv.resize(frame, (500, (int)(frame.shape[0] * 500 /frame.shape[1])))
+    resizeToMin500(frame)
 
     imgMgnr = ImageManager(frame)
 
-    imgMgnr.findPairsOfEyes(1.1, 10)
+    imgMgnr.findPairsOfEyes(1.2, 10)
 
     
 
-    for (x,y,w,h) in imgMgnr.eyes:
-        cv.rectangle(frame, (x, y), (x + w, y + h), (0,255,0), thickness= 2)
+    for eye in imgMgnr.eyes:
+        eye.draw(frame,(0,255,0), 2)
 
     cv.imshow('Video', frame)
     
