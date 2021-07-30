@@ -21,6 +21,7 @@ class DetectedArea:
         self.lowerRight = Point(upperLeftPoint[0] + dimensions[0], upperLeftPoint[1] + dimensions[1])
         self.lowerLeft = Point(upperLeftPoint[0], upperLeftPoint[1] + dimensions[1])
         self.center = Point(upperLeftPoint[0] + dimensions[0]/2, upperLeftPoint[1] + dimensions[1]/2)
+        self.radius = self.center.distTo(self.upperLeft)
     
     def copy(self):
         """

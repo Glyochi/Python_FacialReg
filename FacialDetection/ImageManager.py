@@ -32,7 +32,8 @@ class ImageManager:
     """
     haarcascade_eye = cv.CascadeClassifier("classifier/haarcascade_eye.xml")
     haarcascade_face = cv.CascadeClassifier("classifier/haarcascade_frontalface_default.xml")
-    similarSizeScale = 0.6
+    haarcascade_nose = cv.CascadeClassifier("classifier/haarcascade_nose.xml")
+    similarSizeScale = 0.5
     pairOfEyesDistanceRange = (1.5, 3.5)
 
     def __init__(self, img):
@@ -62,7 +63,7 @@ class ImageManager:
         AllObjects = []        
 
         # finding objects in 90, 180, and 270 degree rotated image
-        for angle in [0, 45, 90, 135]:
+        for angle in [0, 45, 90, -45]:
             (detected, rotatedCenter) = self.HELPER_runHaarDetectionCounterClockwiseAngle(detector, angle, scaleFactor = scaleFactor, minNeighbors = minNeighbors)
             self.HELPER_rotateDetectedAreaClockwise(detected, rotatedCenter, angle)
             self.HELPER_projectDetectedArea(detected, rotatedCenter)
@@ -180,13 +181,11 @@ class ImageManager:
 
     def findPairsOfEyes(self, scaleFactor, minNeighbors):
         """
-        Find the pairs of eyes in the image after applying haarcascade eye detection on the 0, 90, 180, and 270 degree rotated image. 
-        Also save the 
-            :return 
+        Find the pairs of eyes in the image after applying haarcascade eye detection on the 0, 90, 180, and 270 degree rotated image.
+            :return array of pairs of eyes
         """
         
-        self.eyes = self.HELPER_mergeDetectedObjs(self.HELPER_runHaarDetection(self.haarcascade_eye, scaleFactor, minNeighbors))
-        eyes = self.eyes 
+        eyes = self.HELPER_mergeDetectedObjs(self.HELPER_runHaarDetection(self.haarcascade_eye, scaleFactor, minNeighbors))
 
         pairOfEyes = []
         
@@ -194,56 +193,48 @@ class ImageManager:
             for j in range(i,len(eyes)):
                 if eyes[i].similarSize(eyes[j], self.similarSizeScale):
                     dist = eyes[i].center.distTo(eyes[j].center)
-                    averageRadius = (eyes[i].center.distTo(eyes[i].upperLeft) + eyes[j].center.distTo(eyes[j].upperLeft))/2
+                    averageRadius = (eyes[1].radius + eyes[j].radius)/2
                     if dist < self.pairOfEyesDistanceRange[1] * averageRadius and dist > self.pairOfEyesDistanceRange[0] * averageRadius:
-                        pairOfEyes.append((eyes[i], eyes[j], averageRadius))
-
-        self.pairOfEyes = pairOfEyes
+                        # Let the left most eye be the first eye. This is for calculating relative angle of the face in findFacesUsingPairOfEyes method
+                        if eyes[i].center.x < eyes[j].center.x:
+                            pairOfEyes.append((eyes[i], eyes[j]))
+                        else:
+                            pairOfEyes.append((eyes[j], eyes[i]))
 
         return pairOfEyes
 
-    
-    
-    def DEBUGfindFacesUsingPairOfEyes(self, pairOfEyes, scaleFactor, minNeighbors):
+ 
+    def DEBUG_findFacesUsingPairOfEyes(self, pairOfEyes, scaleFactor, minNeighbors):
         """
         Using given pairs of eyes, for each pair find the angle the face is leaning, crop the area the face could be out and run haarDetection on that area.
         Return an array of all detectedAreas encapsulating faces.
-            :param pairOfEyes: 3-tuple (eye 1, eye 2, average radius of the two eyes)
+            :param pairOfEyes: 2-tuple (left eye, right eye)
+            :param scaleFactor: parameter for detectMultiScale
+            :param minNeighbors: parameter for detectedMultiScale
             return array of all detected faces
         """
 
-        # For right now, let face width be 6 average radius, and height be 10 average radius with 4 average radiuses from 2 eyes center to the top 
-        # 6 average radiuses from 2 eyes center to the chin
+        # For right now, let face width be 6 average radius, and height be 10 average radius with 5 average radiuses from 2 eyes center to the top 
+        # 5 average radiuses from 2 eyes center to the chin
 
         debugArrayFaces = []
         debugPotentialFaceNumber = 1
         for pair in pairOfEyes:
             
-            eye1 = pair[0]
-            eye2 = pair[1]
-
-            
-            # print("DEBUG EYES------------------------------------------------------------")
-            # print("Eye 1")
-            # print("    upperLeft    ", eye1.upperLeft.exportCoordinates())
-            # print("    upperRight   ", eye1.upperRight.exportCoordinates())
-            # print("    lowerLeft    ", eye1.lowerLeft.exportCoordinates())
-            # print("    lowerRight   ", eye1.lowerRight.exportCoordinates())
-            # print("    center       ", eye1.center.exportCoordinates())
-            # print("Eye 2")
-            # print("    upperLeft    ", eye2.upperLeft.exportCoordinates())
-            # print("    upperRight   ", eye2.upperRight.exportCoordinates())
-            # print("    lowerLeft    ", eye2.lowerLeft.exportCoordinates())
-            # print("    lowerRight   ", eye2.lowerRight.exportCoordinates())
-            # print("    center       ", eye2.center.exportCoordinates())
-
+            leftEye = pair[0]
+            rightEye = pair[1]
+            eyeAverageRadius = (leftEye.radius + rightEye.radius)/2
             # halfFaceDimensions store the distance from faceOrigin to the left border, to the upper border, and to the lower border
-            halfFaceDimensions = (pair[2] * 4, pair[2] * 6, pair[2] * 6)
-            relativeAngle = eye1.center.relativeAngle(eye2.center) % 180
+            # faceMinRadius is the min radius of the rectangle encapsulating the detected Face
+            halfFaceDimensions = (eyeAverageRadius * 4, eyeAverageRadius * 5, eyeAverageRadius * 5)
+            faceMinRadius = eyeAverageRadius * 3
+
+            # relative angle range from 270 -> 0 -> 90 degree because faces usually aren't up side down, still this function takes care of that case also
+            relativeAngle = (leftEye.center.relativeAngle(rightEye.center) + 90) % 180 - 90
             originalImageCenter = Point(self.grayImage.shape[1]/2, self.grayImage.shape[0]/2)
-            faceOrigin = Point((eye1.center.x + eye2.center.x)/2,(eye1.center.y + eye2.center.y)/2)
+            faceOrigin = Point((leftEye.center.x + rightEye.center.x)/2,(leftEye.center.y + rightEye.center.y)/2)
            
-            # Rotate the face origin point and the image
+            # Rotate the face origin point and the image such that the face is straightened up
             rotatedGrayImage = rotateClockwise(self.grayImage, relativeAngle)
             rotatedImageCenter = Point(rotatedGrayImage.shape[1]/2, rotatedGrayImage.shape[0]/2)
             rotatedFaceOrigin = faceOrigin.rotatePointClockwise(originalImageCenter, relativeAngle)
@@ -253,8 +244,8 @@ class ImageManager:
             
             # DEBUG step --- DEBUG step --- DEBUG step --- DEBUG step --- DEBUG step --- DEBUG step --- DEBUG step --- DEBUG step --- 
             debugOriginalImage = rotateClockwise(self.image, 0)
-            eye1.draw(debugOriginalImage, (0,255,255), 2)
-            eye2.draw(debugOriginalImage, (0,255,255), 2)
+            leftEye.draw(debugOriginalImage, (255,0,255), 2)
+            rightEye.draw(debugOriginalImage, (0,255,255), 2)
             cv.circle(debugOriginalImage, faceOrigin.exportCoordinates(), 0, (0, 255, 0), 20)
             debugRotatedOriginalImage = rotateClockwise(debugOriginalImage, relativeAngle)
             cv.circle(debugRotatedOriginalImage, rotatedFaceOrigin.exportCoordinates(), 0, (255, 255, 255), 12)
@@ -292,49 +283,71 @@ class ImageManager:
 
 
             # find the face in the cropped Area
-            detectedFace = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors)
+            detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors)
+
 
             # DEBUGING AREA
             debugRotatedCrop = cv.circle(debugRotatedCrop, croppedCenter.exportCoordinates(), 0, (255, 255, 255), 6)
-           
-            
-
 
             # DEBUGING AREA
 
 
-            if len(detectedFace) == 0:
-                continue
-            else:
-                biggestFace = detectedFace[0]
-                for i in range(1,len(detectedFace)):
-                    # Doesn't have to be too complicated, if one dimension is larger the other is 99% of the time larger as well
-                    if detectedFace[i][2] > biggestFace[2]:
-                        biggestFace = detectedFace[i]
-                biggestFace = DetectedArea((biggestFace[0],biggestFace[1]), (biggestFace[2], biggestFace[3]))
+            boolUpSideDown = False
 
-                if biggestFace.center.distTo(biggestFace.upperLeft) < pair[2] * 3:
+            if len(detectedFaces) == 0:
+                # Scan the image upside down in case of upside down faces
+                rotatedCrop = rotateClockwise(rotatedCrop, 180)
+                detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors)
+                if len(detectedFaces) == 0:
                     continue
-                # Convert biggestFace coordinates from being in the cropped image to the original image
-                # biggestFace.projectArea(croppedCenter, rotatedFaceOrigin)
-                # biggestFace.draw(self.image, (255, 0, 0), 2)
-                # biggestFace.rotateAreaClockwise(rotatedImageCenter, relativeAngle)
-                # biggestFace.draw(self.image, (255, 255, 0), 2)
-                # biggestFace.projectArea(rotatedImageCenter, originalImageCenter)
-                # biggestFace.draw(self.image, (255, 255, 255), 2)
-                biggestFace.draw(debugRotatedCrop, (0, 0, 255), 2)
-                cv.imshow("Potential face " + str(debugPotentialFaceNumber), resizeMinTo(debugRotatedCrop, 250))
+                boolUpSideDown = True
 
-                print("DEBUG dimensions------------")
-                print("biggestFace.copy().dimensions ", biggestFace.dimensions)
 
-                debugArrayFaces.append((biggestFace.copy(), rotatedFaceCenter, croppedCenter, rotatedImageCenter, relativeAngle, originalImageCenter)) 
-                # print("DEBUG-----------------------------------------------------------------------------")
-                # print("upperLeft ", biggestFace.upperLeft.exportCoordinates())
-                # print("upperRight ", biggestFace.upperRight.exportCoordinates())
-                # print("lowerLeft ", biggestFace.lowerLeft.exportCoordinates())
-                # print("lowerRight ", biggestFace.lowerRight.exportCoordinates())
-                # print("center ", biggestFace.center.exportCoordinates())
+            # merge smaller faces to the biggest face
+            biggestFace = detectedFaces[0]
+            for i in range(1, len(detectedFaces)):
+                # Doesn't have to be too complicated, if one dimension is larger the other is 99% of the time larger as well
+                if detectedFaces[i][2] > biggestFace[2]:
+                    biggestFace = detectedFaces[i]
+
+
+            # if face's radius is too small then its not a face (face right now is a 4-tuple (x, y, w, h))
+            if biggestFace[2] ** 2 + biggestFace[3] ** 2 < (faceMinRadius * 2) ** 2:
+
+                if boolUpSideDown:
+                    continue
+
+                # Scan the image upside down in case of upside down faces
+                rotatedCrop = rotateClockwise(rotatedCrop, 180)
+                detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors)
+                if len(detectedFaces) == 0:
+                    continue
+                boolUpSideDown = True
+
+                
+                # merge smaller faces to the biggest face
+                biggestFace = detectedFaces[0]
+                for i in range(1, len(detectedFaces)):
+                    # if one dimension is larger the other is 99% of the time larger as well
+                    if detectedFaces[i][2] > biggestFace[2]:
+                        biggestFace = detectedFaces[i]
+
+                if biggestFace[2] ** 2 + biggestFace[3] ** 2 < (faceMinRadius * 2) ** 2:
+                    continue
+
+
+            biggestFace = DetectedArea((biggestFace[0],biggestFace[1]), (biggestFace[2], biggestFace[3]))
+
+            
+            if boolUpSideDown:
+                biggestFace.rotateAreaClockwise(croppedCenter, 180)
+
+            # Convert biggestFace coordinates from being in the cropped image to the original image
+            biggestFace.draw(debugRotatedCrop, (0, 0, 255), 2)
+            cv.imshow("Potential face " + str(debugPotentialFaceNumber), resizeMinTo(debugRotatedCrop, 250))
+
+            debugArrayFaces.append((biggestFace.copy(), rotatedFaceCenter, croppedCenter, rotatedImageCenter, relativeAngle, originalImageCenter)) 
+                
             
             debugPotentialFaceNumber = debugPotentialFaceNumber + 1
 
@@ -342,8 +355,135 @@ class ImageManager:
         return debugArrayFaces
 
 
+    def findFacesUsingPairOfEyes(self, pairOfEyes, scaleFactor, minNeighbors):
+        """
+        Using given pairs of eyes, for each pair of similar-size eyes, find the angle the face is leaning, crop the area the face could be out and run haarDetection on that area.
+        Return an array of all detectedAreas encapsulating faces.
+            :param pairOfEyes: 2-tuple (left eye, right eye)
+            :param scaleFactor: parameter for detectMultiScale
+            :param minNeighbors: parameter for detectedMultiScale
+            return array of all detected faces
+        """
+
+        faces = [] 
+
+        # For right now, let face width be 6 average radius, and height be 10 average radius with 5 average radiuses from 2 eyes center to the top 
+        # 5 average radiuses from 2 eyes center to the chin. I'm going to make the height ratio 3 top:5 bottom once i added mouth/nose detection for orientation
+        
+        for pair in pairOfEyes:
+            
+            leftEye = pair[0]
+            rightEye = pair[1]
+            eyeAverageRadius = (leftEye.radius + rightEye.radius)/2
+            # halfFaceDimensions store the distance from faceOrigin to the left border, to the upper border, and to the lower border
+            # faceMinRadius is the min radius of the rectangle encapsulating the detected Face
+            halfFaceDimensions = (eyeAverageRadius * 4, eyeAverageRadius * 5, eyeAverageRadius * 5)
+            faceMinRadius = eyeAverageRadius * 3
+
+            # relative angle range from 270 -> 0 -> 90 degree because faces usually aren't up side down, still this function takes care of that case also
+            relativeAngle = (leftEye.center.relativeAngle(rightEye.center) + 90) % 180 - 90
+            originalImageCenter = Point(self.grayImage.shape[1]/2, self.grayImage.shape[0]/2)
+            faceOrigin = Point((leftEye.center.x + rightEye.center.x)/2,(leftEye.center.y + rightEye.center.y)/2)
+           
+            # Rotate the face origin point and the image such that the face is straightened up
+            rotatedGrayImage = rotateClockwise(self.grayImage, relativeAngle)
+            rotatedImageCenter = Point(rotatedGrayImage.shape[1]/2, rotatedGrayImage.shape[0]/2)
+            rotatedFaceOrigin = faceOrigin.rotatePointClockwise(originalImageCenter, relativeAngle).projectPoint(originalImageCenter, rotatedImageCenter)
+
+            # Crop the potential face out
+            cropRangeMinY = int(max(0, rotatedFaceOrigin.y - halfFaceDimensions[1]))
+            cropRangeMaxY = int(min(rotatedGrayImage.shape[0], rotatedFaceOrigin.y + halfFaceDimensions[2]))
+
+            cropRangeMinX = int(max(0, rotatedFaceOrigin.x - halfFaceDimensions[0]))
+            cropRangeMaxX = int(min(rotatedGrayImage.shape[1], rotatedFaceOrigin.x + halfFaceDimensions[0]))
+
+            try:
+                rotatedCrop = np.zeros((cropRangeMaxY - cropRangeMinY, cropRangeMaxX - cropRangeMinX), dtype='uint8')
+                rotatedCrop[0: rotatedCrop.shape[0], 0: rotatedCrop.shape[1]] = \
+                    rotatedGrayImage[cropRangeMinY:cropRangeMaxY, cropRangeMinX:cropRangeMaxX]
+             
+            except:
+                rotatedCrop = np.zeros((cropRangeMaxY - cropRangeMinY, cropRangeMaxX - cropRangeMinX, 3), dtype ='uint8')
+                rotatedCrop[0: rotatedCrop.shape[0], 0: rotatedCrop.shape[1]] = \
+                    rotatedGrayImage[cropRangeMinY:cropRangeMaxY, cropRangeMinX:cropRangeMaxX]
+        
+            rotatedFaceCenter = Point((cropRangeMinX + cropRangeMaxX)/2, (cropRangeMinY + cropRangeMaxY)/2)
+            croppedCenter = Point(rotatedCrop.shape[1]/2, rotatedCrop.shape[0]/2)
+
+
+            # find the face in the cropped Area
+            detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors)
+            boolUpSideDown = False
+
+
+            # if found no faces right side up
+            if len(detectedFaces) == 0:
+                # Scan the image upside down
+                rotatedCrop = rotateClockwise(rotatedCrop, 180)
+                detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors)
+                if len(detectedFaces) == 0:
+                    continue
+                boolUpSideDown = True
+
+
+            # merge smaller faces to the biggest face
+            biggestFace = detectedFaces[0]
+            for i in range(1, len(detectedFaces)):
+                # Doesn't have to be too complicated, if one dimension is larger the other is 99% of the time larger as well
+                if detectedFaces[i][2] > biggestFace[2]:
+                    biggestFace = detectedFaces[i]
+
+
+            # if face's radius is too small then its not a face (face right now is a 4-tuple (x, y, w, h))
+            if biggestFace[2] ** 2 + biggestFace[3] ** 2 < (faceMinRadius * 2) ** 2:
+
+                if boolUpSideDown:
+                    continue
+
+                # Scan the image upside down in case of upside down faces
+                rotatedCrop = rotateClockwise(rotatedCrop, 180)
+                detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors)
+                if len(detectedFaces) == 0:
+                    continue
+                boolUpSideDown = True
 
                 
+                # merge smaller faces to the biggest face
+                biggestFace = detectedFaces[0]
+                for i in range(1, len(detectedFaces)):
+                    # if one dimension is larger the other is 99% of the time larger as well
+                    if detectedFaces[i][2] > biggestFace[2]:
+                        biggestFace = detectedFaces[i]
+
+                # if face's radius is too small then its not a face (face right now is a 4-tuple (x, y, w, h))
+                if biggestFace[2] ** 2 + biggestFace[3] ** 2 < (faceMinRadius * 2) ** 2:
+                    continue
+
+            
+            biggestFace = DetectedArea((biggestFace[0],biggestFace[1]), (biggestFace[2], biggestFace[3]))
+            
+
+            if boolUpSideDown:
+                biggestFace.rotateAreaClockwise(croppedCenter, 180)
+
+            # Convert biggestFace coordinates from being in the cropped image to the original image
+            biggestFace.projectArea(croppedCenter, rotatedFaceOrigin)
+            biggestFace.rotateAreaCounterClockwise(rotatedImageCenter, relativeAngle)
+            biggestFace.projectArea(rotatedImageCenter, originalImageCenter)
+
+            faces.append(biggestFace)
+
+        return faces
+
+
+    def findFaces(self, scaleFactor, minNeighbors):
+        """
+        Find faces in the image and return them as detectedArea objects in an array
+            :param scaleFactor: paramter for detectMultiScale
+            :param minNeighbors: parameter for detectMultiScale
+            :return an array of faces as detectedArea objects
+        """
+        return self.findFacesUsingPairOfEyes(self.findPairsOfEyes(scaleFactor, minNeighbors), scaleFactor, minNeighbors)
 
                 
 

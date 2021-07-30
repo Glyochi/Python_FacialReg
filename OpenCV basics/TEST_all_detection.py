@@ -1,6 +1,8 @@
+from sys import maxsize
 import cv2 as cv
 import math
 import numpy as np
+import time
 
 # Functions ---- Functions ---- Functions ---- Functions ---- Functions ---- Functions ---- Functions ---- Functions
 
@@ -54,23 +56,31 @@ while True:
 
     # Blue Green Red
 
-    # Left Eye blue light (255, 255, 0)
-    left_EYE_rect = haar_cascasde_left_EYE.detectMultiScale(grayFrame, scaleFactor = 1.1, minNeighbors=6, minSize = (30,30))
-    for (x,y,w,h) in left_EYE_rect:
-        cv.rectangle(frame, (x, y), (x + w, y + h), (255,255,0), thickness= 2)
-        cv.putText(frame,'Left Eye blue light', (x, y - 5), font, 1, (255,255,0), 1)
+    # # Left Eye blue light (255, 255, 0)
+    # left_EYE_rect = haar_cascasde_left_EYE.detectMultiScale(grayFrame, scaleFactor = 1.1, minNeighbors=6, minSize = (30,30))
+    # for (x,y,w,h) in left_EYE_rect:
+    #     cv.rectangle(frame, (x, y), (x + w, y + h), (255,255,0), thickness= 2)
+    #     cv.putText(frame,'Left Eye blue light', (x, y - 5), font, 1, (255,255,0), 1)
 
-    # Right Eye blue dark (255, 128, 0)
-    right_EYE_rect = haar_cascasde_right_EYE.detectMultiScale(grayFrame, scaleFactor = 1.1, minNeighbors=6, minSize = (30,30))
-    for (x,y,w,h) in right_EYE_rect:
-        cv.rectangle(frame, (x, y), (x + w, y + h), (255,128,0), thickness= 2)
-        cv.putText(frame,'Right Eye blue dark', (x, y -5), font, 1, (255,128,0), 1)
+    # # Right Eye blue dark (255, 128, 0)
+    # right_EYE_rect = haar_cascasde_right_EYE.detectMultiScale(grayFrame, scaleFactor = 1.1, minNeighbors=6, minSize = (30,30))
+    # for (x,y,w,h) in right_EYE_rect:
+    #     cv.rectangle(frame, (x, y), (x + w, y + h), (255,128,0), thickness= 2)
+    #     cv.putText(frame,'Right Eye blue dark', (x, y -5), font, 1, (255,128,0), 1)
 
     # Eye blue darker (255, 0, 0)
-    EYE_rect = haar_cascasde_EYE.detectMultiScale(grayFrame, scaleFactor = 1.1, minNeighbors=3, minSize = (30,30))
+    tic = time.perf_counter()
+    EYE_rect = haar_cascasde_EYE.detectMultiScale(grayFrame, scaleFactor = 1.3, minNeighbors=3, minSize = (30,30), maxSize = (100, 100))
+    toc = time.perf_counter()
     for (x,y,w,h) in EYE_rect:
         cv.rectangle(frame, (x, y), (x + w, y + h), (255,0,0), thickness= 2)
-        cv.putText(frame,'Eye blue darker', (x, y - 5), font, 1, (255,0,0), 2)
+        cv.putText(frame,f'Eye blue darker {toc - tic:0.4f} seconds', (x, y - 5), font, 1, (255,0,0), 2)
+    tic = time.perf_counter()
+    EYE_rect = haar_cascasde_EYE.detectMultiScale(grayFrame, scaleFactor = 1.3, minNeighbors=3, minSize = (30,30), maxSize = (100, 100))
+    toc = time.perf_counter()
+    for (x,y,w,h) in EYE_rect:
+        cv.rectangle(frame, (x, y), (x + w, y + h), (255,0,0), thickness= 2)
+        cv.putText(frame,f'Eye blue darker {toc - tic:0.4f} seconds', (x, y - 5), font, 1, (255,0,0), 2)
 
     # Nose Pink (255, 0, 255)
     # nose_rect = haar_cascasde_nose.detectMultiScale(grayFrame, scaleFactor = 1.1, minNeighbors=3, minSize = (30,30))

@@ -7,10 +7,10 @@ from helperFunctions import *
 
 
 image = cv.imread(r'D:\workspace\git\Python_FacialReg\FacialDetection\testingParts\testImages\people.jpg')
-
+image = resizeMinTo(image, 700)
 imgMngr = ImageManager(image)        
 
-detector = imgMngr.haarcascade_eye
+eyesDetector = imgMngr.haarcascade_eye
 
 # constant parameter for testing
 scaleFactor = 1.1
@@ -28,12 +28,12 @@ angle = 0
 rotatedImage = rotateCounterClockwise(image, angle)
 
 
-(detected0, rotatedCenter0) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(detector, angle, scaleFactor, minNeighbors)
+(detected0, rotatedCenter0) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(eyesDetector, angle, scaleFactor, minNeighbors)
 
 for detectedArea in detected0:
     detectedArea.draw(rotatedImage, (0,255,0), thickness= 2)
 
-cv.imshow("RotatedImage w detectedArea " + str(angle), resizeMinTo500(rotatedImage))
+cv.imshow("Debug Find Eyes: RotatedImage w detectedArea " + str(angle), resizeMinTo500(rotatedImage))
 
 
 
@@ -42,12 +42,12 @@ angle = 90
 rotatedImage = rotateCounterClockwise(image, angle)
 
 
-(detected90, rotatedCenter90) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(detector, angle, scaleFactor, minNeighbors)
+(detected90, rotatedCenter90) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(eyesDetector, angle, scaleFactor, minNeighbors)
 
 for detectedArea in detected90:
     detectedArea.draw(rotatedImage, (255,0,0), thickness= 2)
 
-cv.imshow("RotatedImage w detectedArea " + str(angle), resizeMinTo500(rotatedImage))
+cv.imshow("Debug Find Eyes: RotatedImage w detectedArea " + str(angle), resizeMinTo500(rotatedImage))
 
 
 
@@ -56,13 +56,13 @@ angle = 180
 rotatedImage = rotateCounterClockwise(image, angle)
 
 
-(detected180, rotatedCenter180) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(detector, angle, scaleFactor, minNeighbors)
+(detected180, rotatedCenter180) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(eyesDetector, angle, scaleFactor, minNeighbors)
 
 for detectedArea in detected180:
     detectedArea.draw(rotatedImage, (0,0,255), thickness= 2)
 
 
-cv.imshow("RotatedImage w detectedArea " + str(angle), resizeMinTo500(rotatedImage))
+cv.imshow("Debug Find Eyes: RotatedImage w detectedArea " + str(angle), resizeMinTo500(rotatedImage))
 
 
 
@@ -71,12 +71,12 @@ angle = 270
 rotatedImage = rotateCounterClockwise(image, angle)
 
 
-(detected270, rotatedCenter270) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(detector, angle, scaleFactor, minNeighbors)
+(detected270, rotatedCenter270) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(eyesDetector, angle, scaleFactor, minNeighbors)
 
 for detectedArea in detected270:
     detectedArea.draw(rotatedImage, (255,255,0), thickness= 2)
 
-cv.imshow("RotatedImage w detectedArea " + str(angle), resizeMinTo500(rotatedImage))
+cv.imshow("Debug Find Eyes: RotatedImage w detectedArea " + str(angle), resizeMinTo500(rotatedImage))
 
 
 
@@ -179,7 +179,7 @@ for detectedArea in detected180:
 for detectedArea in detected270:
     detectedArea.draw(rotatedImage, (255,255,0), thickness= 2)
 
-cv.imshow("All detected Eyes separated", resizeMinTo500(rotatedImage))
+cv.imshow("Debug Find Eyes: All detected Eyes separated", resizeMinTo500(rotatedImage))
 
 
 
@@ -191,18 +191,26 @@ detectedEyes = imgMngr.HELPER_mergeDetectedObjs(detectedEyes)
 
 for detectedEye in detectedEyes:
     detectedEye.draw(rotatedImage, (255, 255, 255), 2)
-cv.imshow("Merged detected Eyes", resizeMinTo500(rotatedImage))
+cv.imshow("Debug Find Eyes: Merged detected Eyes", resizeMinTo500(rotatedImage))
 
 
 
 # Find the faces using detectedEyes
 
 rotatedImage = rotateCounterClockwise(image, 0)
-detectedEyes = imgMngr.findPairsOfEyes(1.1, 10)
+detectedPairs = imgMngr.findPairsOfEyes(1.1, 10)
 
 
+for pair in detectedPairs:
+    eye1 = pair[0]
+    eye2 = pair[1]
+    eye1.draw(rotatedImage, (0, 255, 0), 2)
+    eye2.draw(rotatedImage, (0, 255, 0), 2)
+    
+cv.imshow("Debug findPairOfEyes", resizeMinTo500(rotatedImage))
 
-DebugFaces = imgMngr.DEBUGfindFacesUsingPairOfEyes(detectedEyes, 1.1, 10)
+
+DebugFaces = imgMngr.DEBUG_findFacesUsingPairOfEyes(detectedPairs, 1.1, 10)
 
 for i in range(len(DebugFaces)):
     (face, rotatedFaceOrigin, croppedCenter, rotatedImageCenter, relativeAngle, originalImageCenter)  = DebugFaces[i]
@@ -222,7 +230,7 @@ for i in range(len(DebugFaces)):
     face.draw(rotatedImage, (0, 255, 0), 2)
     cv.putText(rotatedImage, str(i), face.upperLeft.exportCoordinates(), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-cv.imshow("After first projection", resizeMinTo500(rotatedImage))
+cv.imshow("DebugFindFaces: After first projection", resizeMinTo500(rotatedImage))
 
 # First projection and rotate
 
@@ -235,7 +243,7 @@ for i in range(len(DebugFaces)):
     cv.putText(rotatedImage, str(i), face.upperLeft.exportCoordinates(), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
 
-cv.imshow("After first projection and rotate", resizeMinTo500(rotatedImage))
+cv.imshow("DebugFindFaces: After first projection and rotate", resizeMinTo500(rotatedImage))
 
 # final faces coordinates
 
@@ -244,15 +252,25 @@ rotatedImage = rotateCounterClockwise(image, 0)
 for i in range(len(DebugFaces)):
     (face, rotatedFaceOrigin, croppedCenter, rotatedImageCenter, relativeAngle, originalImageCenter)  = DebugFaces[i]
     face.projectArea(rotatedImageCenter, originalImageCenter)
-    print("DEBUG OUT OF FUNCTION CHECK DIMENSIONS")
-    print("biggestFaceOutOfFunction.dimensions", face.dimensions )
-    print()
 
     face.draw(rotatedImage, (255, 255, 255), 2)
     cv.putText(rotatedImage, str(i), face.upperLeft.exportCoordinates(), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
 
-cv.imshow("Final faces' coordinates", resizeMinTo500(rotatedImage))
+cv.imshow("DebugFindFaces: Final faces' coordinates", resizeMinTo500(rotatedImage))
+
+
+
+rotatedImage = rotateCounterClockwise(image, 0)
+detectedFaces = imgMngr.findFacesUsingPairOfEyes(detectedPairs, 1.1, 10)
+
+i = 0
+for face in detectedFaces:
+    face.draw(rotatedImage, (255, 255, 255), 2)
+    cv.putText(rotatedImage, str(i), face.upperLeft.exportCoordinates(), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    i = i + 1
+
+cv.imshow("FindFacesUsingPairOfEyes (supposed to look like DebugFindFaces: Final faces)", resizeMinTo500(rotatedImage))
 
 cv.waitKey(0)
 
