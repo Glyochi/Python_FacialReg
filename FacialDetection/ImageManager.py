@@ -51,27 +51,6 @@ class ImageManager:
     
     
 
-    def HELPER_runHaarDetection(self, detector, scaleFactor, minNeighbors):
-        """
-        Call the runHaarDetectionAngle function with 0, 90, 180, and 270 degree as angle inputs to generate a 4-tuple that
-        contains 4 arrays of translated DectectedArea objects with corresponding angles.
-            :param detector: the haarcascade object that is going to scan the image
-            :param scaleFactor: scaleFactor parameter for detectMultiScale function
-            :param minNeighbors: minNeighbors parameter for detectMultiScale function
-            :return a 4-tuple of 4 arrays containing all the translated coordinates of the detected objects in the image.
-        """
-        AllObjects = []        
-
-        # finding objects in 90, 180, and 270 degree rotated image
-        for angle in [0, 45, 90, -45]:
-            (detected, rotatedCenter) = self.HELPER_runHaarDetectionCounterClockwiseAngle(detector, angle, scaleFactor = scaleFactor, minNeighbors = minNeighbors)
-            self.HELPER_rotateDetectedAreaClockwise(detected, rotatedCenter, angle)
-            self.HELPER_projectDetectedArea(detected, rotatedCenter)
-            AllObjects.append(detected)
-
-        return AllObjects    
-
-
     
     def HELPER_runHaarDetectionCounterClockwiseAngle(self, detector, angle, scaleFactor, minNeighbors):
         """
@@ -140,18 +119,35 @@ class ImageManager:
         return rawPositions
 
 
+    def HELPER_standardizeCounterClockwiseDetectedArea(self, detectedAreas, rotatedCenter, angle):
+        """
+        Translate the coordinates of counter clockwise rotated detectedAreas to the original image coordinates
+            :param detectedAreas: a list of detectedArea objects
+            :param rotatedCenter: the rotated image's center's point object
+            :param angle: the angle by which the image was rotated counter clockwise by
+            :return a list of translated detectedAreas for the nonrotated image
+        """
+
+        AllObjects = []    
+
+        self.HELPER_rotateDetectedAreaClockwise(detectedAreas, rotatedCenter, angle)
+        self.HELPER_projectDetectedArea(detectedAreas, rotatedCenter)
+        AllObjects.append(detectedAreas)
+
+        return AllObjects
         
 
-    def HELPER_mergeDetectedObjs(self, tuple):
+    def HELPER_mergeDetectedObjs(self, list):
         """
-        Given a four-tuple containing 4 arrays of detected objects, scan through all of them and if find two duplicates (similar detected objects with similar 
+        Given a list of any number of arrays of (detected objects, rotatedCenter), scan through all of them and if find two duplicates (similar detected objects with similar 
         sizes and positions), merge them and put all the unique detected object in an array. 
+            :param list: a list of arrays
             :return an array that contains all the unique detected objects.
         """
-        array0 = tuple[0]
+        array0 = list[0]
         others = []
-        for i in range(1,len(tuple)):
-            others.append(tuple[i])
+        for i in range(1,len(list)):
+            others.append(list[i])
 
 
         for i in range(len(array0) - 1):
@@ -178,14 +174,64 @@ class ImageManager:
         return array0
 
 
-
-    def findPairsOfEyes(self, scaleFactor, minNeighbors):
+    def HELPER_findEyesCounterClockwiseAngle(self, angle, scaleFactor, minNeighbors):
         """
-        Find the pairs of eyes in the image after applying haarcascade eye detection on the 0, 90, 180, and 270 degree rotated image.
-            :return array of pairs of eyes
+        Find the (non-paired) eyes in the counter clockwise rotated image. Merge the duplicates and return them in an array
+            :param angle: the angle by which the image is rotated by counter clockwise
+            :param scaleFactor: detectMultiscale parameter
+            :param minNeighbors: detectMultiscale parameter
+            :return an array of detected eyes in the counter clockwise rotated image
+        """
+        (detectedEyes, rotatedCenter) = self.HELPER_runHaarDetectionCounterClockwiseAngle(self.haarcascade_eye, angle, scaleFactor, minNeighbors)
+        eyes = self.HELPER_mergeDetectedObjs(self.HELPER_standardizeCounterClockwiseDetectedArea(detectedEyes, rotatedCenter, angle))
+           
+        return eyes
+
+
+
+    def findPairsOfEyesCounterClockwiseAngle(self, angle, scaleFactor, minNeighbors):
+        """
+        Find the pairs of eyes in the counter clockwise rotated image. Return them in an array containing 2-tuple with the 
+        first element being the left-most eye and the second element the right-most eye.
+            :param angle: the angle by which the image is rotated by counter clockwise
+            :param scaleFactor: detectMultiscale parameter
+            :param minNeighbors: detectMultiscale parameter
+            :return an array of pairs of eyes 
         """
         
-        eyes = self.HELPER_mergeDetectedObjs(self.HELPER_runHaarDetection(self.haarcascade_eye, scaleFactor, minNeighbors))
+        eyes = self.HELPER_findEyesCounterClockwiseAngle(angle, scaleFactor, minNeighbors)
+
+        pairOfEyes = []
+        
+        for i in range(len(eyes) - 1):
+            for j in range(i,len(eyes)):
+                if eyes[i].similarSize(eyes[j], self.similarSizeScale):
+                    dist = eyes[i].center.distTo(eyes[j].center)
+                    averageRadius = (eyes[1].radius + eyes[j].radius)/2
+                    if dist < self.pairOfEyesDistanceRange[1] * averageRadius and dist > self.pairOfEyesDistanceRange[0] * averageRadius:
+                        # Let the left most eye be the first eye. This is for calculating relative angle of the face in findFacesUsingPairOfEyes method
+                        if eyes[i].center.x < eyes[j].center.x:
+                            pairOfEyes.append((eyes[i], eyes[j]))
+                        else:
+                            pairOfEyes.append((eyes[j], eyes[i]))
+
+        return pairOfEyes
+
+
+    def findPairsOfEyesCounterClockwiseMultipleAngles(self, angles, scaleFactor, minNeighbors):
+        """
+        Find the pairs of eyes in the counter clockwise rotated images. Return them in an array containing 2-tuple with the 
+        first element being the left-most eye and the second element the right-most eye.
+            :param angles: the angles by which the image is rotated by counter clockwise
+            :param scaleFactor: detectMultiscale parameter
+            :param minNeighbors: detectMultiscale parameter
+            :return an array of pairs of eyes 
+        """
+        eyes = []
+        for angle in angles:
+            eyes.append(self.HELPER_findEyesCounterClockwiseAngle(angle, scaleFactor, minNeighbors))
+
+        eyes = self.HELPER_mergeDetectedObjs(eyes)
 
         pairOfEyes = []
         

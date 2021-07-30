@@ -195,10 +195,10 @@ cv.imshow("Debug Find Eyes: Merged detected Eyes", resizeMinTo500(rotatedImage))
 
 
 
-# Find the faces using detectedEyes
-
+# Find the faces using findPairsOfEyes
+angle = 0
 rotatedImage = rotateCounterClockwise(image, 0)
-detectedPairs = imgMngr.findPairsOfEyes(1.1, 10)
+detectedPairs = imgMngr.findPairsOfEyesCounterClockwiseAngle(angle, 1.1, 10)
 
 
 for pair in detectedPairs:
@@ -207,7 +207,20 @@ for pair in detectedPairs:
     eye1.draw(rotatedImage, (0, 255, 0), 2)
     eye2.draw(rotatedImage, (0, 255, 0), 2)
     
-cv.imshow("Debug findPairOfEyes", resizeMinTo500(rotatedImage))
+cv.imshow("Debug findPairsOfEyesCounterClockwiseAngle", resizeMinTo500(rotatedImage))
+
+angles = [0, 45, 90, -45]
+rotatedImage = rotateCounterClockwise(image, 0)
+detectedPairs = imgMngr.findPairsOfEyesCounterClockwiseMultipleAngles(angles, 1.1, 10)
+
+
+for pair in detectedPairs:
+    eye1 = pair[0]
+    eye2 = pair[1]
+    eye1.draw(rotatedImage, (0, 255, 0), 2)
+    eye2.draw(rotatedImage, (0, 255, 0), 2)
+    
+cv.imshow("Debug findPairsOfEyesCounterClockwiseMultipleAngles", resizeMinTo500(rotatedImage))
 
 
 DebugFaces = imgMngr.DEBUG_findFacesUsingPairOfEyes(detectedPairs, 1.1, 10)
