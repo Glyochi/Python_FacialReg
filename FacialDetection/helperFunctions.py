@@ -2,6 +2,42 @@ import math
 import cv2 as cv
 import numpy as np
 
+haar_cascasde_eye = cv.CascadeClassifier("classifier/haarcascade_eye.xml")
+haar_cascasde_nose = cv.CascadeClassifier("classifier/haarcascade_nose.xml")
+# haar_cascasde_face = cv.CascadeClassifier("classifier/haarcascade_frontalface_default.xml")
+haar_cascasde_face = cv.CascadeClassifier("classifier/lbpcascaade_frontalface_improved.xml")
+
+
+# Haarcascade basic detection
+def haarcascade_FacialDetection(image, scaleFactor, minNeighbors, minSize = None, maxSize = None):
+    """
+    This is to be used by videoManager only because there seems to be some error when used in imageManager (caused by multithreading probably)
+    Just run the haarcascade facial detection on the image without modifying the input image
+        :return the detectMultiScale output
+    """
+    if minSize == None:
+        if maxSize == None:
+            return haar_cascasde_face.detectMultiScale(image, scaleFactor, minNeighbors)
+        return haar_cascasde_face.detectMultiScale(image, scaleFactor, minNeighbors, maxSize = maxSize)
+    if maxSize == None:
+        return haar_cascasde_face.detectMultiScale(image, scaleFactor, minNeighbors, minSize = minSize)
+    return haar_cascasde_face.detectMultiScale(image, scaleFactor, minNeighbors, minSize = minSize, maxSize = maxSize)
+
+
+def haarcascade_EyeDetection(image, scaleFactor, minNeighbors, minSize = None, maxSize = None):
+    """
+    Just run the haarcascade eye detection on the image without modifying the input image
+        :return the detectMultiScale output
+    """
+    if minSize == None:
+        if maxSize == None:
+            return haar_cascasde_eye.detectMultiScale(image, scaleFactor, minNeighbors)
+        return haar_cascasde_eye.detectMultiScale(image, scaleFactor, minNeighbors, maxSize = maxSize)
+    if maxSize == None:
+        return haar_cascasde_eye.detectMultiScale(image, scaleFactor, minNeighbors, minSize = minSize)
+    return haar_cascasde_eye.detectMultiScale(image, scaleFactor, minNeighbors, minSize = minSize, maxSize = maxSize)
+    
+
 
 # Rotation
 def rotateClockwise(img, angle):
@@ -37,7 +73,13 @@ def rotateCounterClockwise(img, angle):
     # angle < 360 to avoid edge cases
     angle = angle % 360
     tempAngle = angle%90
-    if (angle >= 0 and angle < 90) or (angle >= 180 and angle < 270):
+    if angle == 0 or angle == 180:
+        fittingWidth = width
+        fittingHeight = height
+    elif angle == 90 or angle == 270:
+        fittingWidth = height
+        fittingHeight = width
+    elif (angle > 0 and angle < 90) or (angle > 180 and angle < 270):
         
         fittingWidth = math.floor(math.cos(diagAngleA + tempAngle*math.pi/180 - math.pi/2) * diagLen)
         fittingHeight = math.floor(math.cos(diagAngleB + tempAngle*math.pi/180 - math.pi/2) * diagLen)
@@ -94,7 +136,7 @@ def resizeMinTo500(img):
         width = 500
         
     dimensions = (width, height)
-    return cv.resize(resizedImage, dimensions, interpolation=cv.INTER_AREA)
+    return cv.resize(resizedImage, dimensions, interpolation= cv.INTER_LINEAR)
 
 # Resize
 def resizeMinTo(img, size):
@@ -117,5 +159,44 @@ def resizeMinTo(img, size):
         width = size
         
     dimensions = (width, height)
-    return cv.resize(resizedImage, dimensions, interpolation=cv.INTER_AREA)
+    return cv.resize(resizedImage, dimensions, interpolation=cv.INTER_LINEAR)
+
+
+# Resize TEST INTERPOLATION SPEED
+def TEST_INTERPOLATION_TYPE_resizeMinTo(img, size, interpolationType):
+    """
+    Create a resized clone of the original image such that the smaller dimension of the image = 500px, and the other dimension is kept to scale
+        :param img: the image need to be resized
+        :param interapolationType: the interpolation type with
+            0: INTER_AREA
+            1: INTER_CUBIC
+            2: INTER_LANCZOS4
+            3: INTER_NEAREST
+            4: INTER_LINEAR
+        :return a resized copy of the iamge
+    """
+    size = int(size)
+    (height, width) = img.shape[:2]
+
+    resizedImage = img.copy()
+
+    if height < width:
+        width = int(width * size/ height)
+        height = size
+        
+    else:
+        height = int(height * size/ width)
+        width = size
+        
+    dimensions = (width, height)
+    if interpolationType == 0:
+        return cv.resize(resizedImage, dimensions, interpolation=cv.INTER_AREA)
+    elif interpolationType == 1:
+        return cv.resize(resizedImage, dimensions, interpolation=cv.INTER_CUBIC)
+    elif interpolationType == 2:
+        return cv.resize(resizedImage, dimensions, interpolation=cv.INTER_LANCZOS4)
+    elif interpolationType == 3:
+        return cv.resize(resizedImage, dimensions, interpolation=cv.INTER_NEAREST)
+    elif interpolationType == 4:
+        return cv.resize(resizedImage, dimensions, interpolation=cv.INTER_LINEAR)
 
