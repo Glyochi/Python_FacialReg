@@ -1,7 +1,8 @@
-from unittest.case import skip
+
 import cv2 as cv
 from Point import Point
 from DetectedArea import DetectedArea
+from DetectedArea import DetectedFace
 from helperFunctions import *
 import numpy as np
 
@@ -32,9 +33,15 @@ class ImageManager:
     """
     haarcascade_eye = cv.CascadeClassifier("classifier/haarcascade_eye.xml")
     haarcascade_face = cv.CascadeClassifier("classifier/haarcascade_frontalface_default.xml")
+    # haarcascade_face = cv.CascadeClassifier("classifier/lbpcascaade_frontalface_improved.xml")
     haarcascade_nose = cv.CascadeClassifier("classifier/haarcascade_nose.xml")
-    similarSizeScale = 0.5
-    pairOfEyesDistanceRange = (1.5, 3.5)
+    HARDCODED_similarSizeScale = 0.5
+    HARDCODED_pairOfEyesDistanceRange = (1.5, 3.5)
+    # eye and face min and max dimensions in a 500pixel x ? pixel images
+    HARDCODED_eyeMinDimensions = (10, 10)
+    HARDCODED_eyeMaxDimensions = (200, 200)
+    HARDCODED_faceMinDimensions = (80, 80)
+    HARDCODED_faceMaxDimensions = (500, 500)
 
     def __init__(self, img):
         """
@@ -45,14 +52,11 @@ class ImageManager:
         self.image = img
         self.grayImage = cv.cvtColor(self.image, cv.COLOR_BGR2GRAY)
         self.imageCenter = Point(img.shape[1]/2, img.shape[0]/2)
-        self.eyes = []
-        self.pairOfEyes = []
-        self.faces = []
     
     
 
     
-    def HELPER_runHaarDetectionCounterClockwiseAngle(self, detector, angle, scaleFactor, minNeighbors):
+    def HELPER_runHaarDetectionCounterClockwiseAngle(self, detector, minDimensions, maxDimensions, angle, scaleFactor, minNeighbors):
         """
         Run the given haarDetection on the image rotated by the given angle and generate 1 array that 
         contain detected objects found.         
@@ -71,7 +75,7 @@ class ImageManager:
         rotatedGrayImage = rotateCounterClockwise(self.grayImage, angle)
             
         # Collecting raw detected objects received from detectMultiScale
-        rawObjs = detector.detectMultiScale(rotatedGrayImage, scaleFactor = scaleFactor, minNeighbors = minNeighbors)
+        rawObjs = detector.detectMultiScale(rotatedGrayImage, scaleFactor = scaleFactor, minNeighbors = minNeighbors, minSize = minDimensions, maxSize = maxDimensions)
             
         detectedAreas = []
         rotatedCenter = Point(rotatedGrayImage.shape[1]/2, rotatedGrayImage.shape[0]/2)
@@ -150,19 +154,25 @@ class ImageManager:
             others.append(list[i])
 
 
-        for i in range(len(array0) - 1):
-            for j in range(i + 1, len(array0)):
-                if array0[i].similarSize(array0[j], self.similarSizeScale) and array0[i].overlap(array0[j]):
+        # checking duplicates in the first array
+        i = 0
+        while i < len(array0) - 1:
+            j = i + 1
+            while j < len(array0):
+                if array0[i].similarSize(array0[j], self.HARDCODED_similarSizeScale) and array0[i].overlap(array0[j]):
                         array0[i].merge(array0[j])
                         array0.pop(j)
                         j = j - 1
+                j = j + 1
+            i = i + 1
 
+        # check for duplicates in the other arrays. Merge them if they are, append them if they arent
         for array in others:
             for area in array:
                 matched = False
                 # Scan through the array to find matches
                 for area0 in array0:
-                    if area0.similarSize(area, self.similarSizeScale) and area0.overlap(area):
+                    if area0.similarSize(area, self.HARDCODED_similarSizeScale) and area0.overlap(area):
                         area0.merge(area)
                         matched = True
                         break
@@ -182,7 +192,7 @@ class ImageManager:
             :param minNeighbors: detectMultiscale parameter
             :return an array of detected eyes in the counter clockwise rotated image
         """
-        (detectedEyes, rotatedCenter) = self.HELPER_runHaarDetectionCounterClockwiseAngle(self.haarcascade_eye, angle, scaleFactor, minNeighbors)
+        (detectedEyes, rotatedCenter) = self.HELPER_runHaarDetectionCounterClockwiseAngle(self.haarcascade_eye, self.HARDCODED_eyeMinDimensions, self.HARDCODED_eyeMaxDimensions, angle, scaleFactor, minNeighbors)
         eyes = self.HELPER_mergeDetectedObjs(self.HELPER_standardizeCounterClockwiseDetectedArea(detectedEyes, rotatedCenter, angle))
            
         return eyes
@@ -205,10 +215,10 @@ class ImageManager:
         
         for i in range(len(eyes) - 1):
             for j in range(i,len(eyes)):
-                if eyes[i].similarSize(eyes[j], self.similarSizeScale):
+                if eyes[i].similarSize(eyes[j], self.HARDCODED_similarSizeScale):
                     dist = eyes[i].center.distTo(eyes[j].center)
                     averageRadius = (eyes[1].radius + eyes[j].radius)/2
-                    if dist < self.pairOfEyesDistanceRange[1] * averageRadius and dist > self.pairOfEyesDistanceRange[0] * averageRadius:
+                    if dist < self.HARDCODED_pairOfEyesDistanceRange[1] * averageRadius and dist > self.HARDCODED_pairOfEyesDistanceRange[0] * averageRadius:
                         # Let the left most eye be the first eye. This is for calculating relative angle of the face in findFacesUsingPairOfEyes method
                         if eyes[i].center.x < eyes[j].center.x:
                             pairOfEyes.append((eyes[i], eyes[j]))
@@ -237,10 +247,8 @@ class ImageManager:
         
         for i in range(len(eyes) - 1):
             for j in range(i,len(eyes)):
-                if eyes[i].similarSize(eyes[j], self.similarSizeScale):
-                    dist = eyes[i].center.distTo(eyes[j].center)
-                    averageRadius = (eyes[1].radius + eyes[j].radius)/2
-                    if dist < self.pairOfEyesDistanceRange[1] * averageRadius and dist > self.pairOfEyesDistanceRange[0] * averageRadius:
+                if eyes[i].similarSize(eyes[j], self.HARDCODED_similarSizeScale):
+                    if eyes[i].appropriateDistanceTo(eyes[j], self.HARDCODED_pairOfEyesDistanceRange[0], self.HARDCODED_pairOfEyesDistanceRange[1]):
                         # Let the left most eye be the first eye. This is for calculating relative angle of the face in findFacesUsingPairOfEyes method
                         if eyes[i].center.x < eyes[j].center.x:
                             pairOfEyes.append((eyes[i], eyes[j]))
@@ -275,15 +283,16 @@ class ImageManager:
             halfFaceDimensions = (eyeAverageRadius * 4, eyeAverageRadius * 5, eyeAverageRadius * 5)
             faceMinRadius = eyeAverageRadius * 3
 
-            # relative angle range from 270 -> 0 -> 90 degree because faces usually aren't up side down, still this function takes care of that case also
-            relativeAngle = (leftEye.center.relativeAngle(rightEye.center) + 90) % 180 - 90
+            # relative angle is the relative angle of the right eye to the left eye, but I limit the ranges from 270 -> 0 -> 90 degree because faces usually aren't up side down, 
+            # still this function takes care of that case also (scan it upside down when find no face)
+            relativeCounterClockwiseAngle = (leftEye.center.relativeCounterClockwiseAngle(rightEye.center) + 90) % 180 - 90
             originalImageCenter = Point(self.grayImage.shape[1]/2, self.grayImage.shape[0]/2)
             faceOrigin = Point((leftEye.center.x + rightEye.center.x)/2,(leftEye.center.y + rightEye.center.y)/2)
            
             # Rotate the face origin point and the image such that the face is straightened up
-            rotatedGrayImage = rotateClockwise(self.grayImage, relativeAngle)
+            rotatedGrayImage = rotateClockwise(self.grayImage, relativeCounterClockwiseAngle)
             rotatedImageCenter = Point(rotatedGrayImage.shape[1]/2, rotatedGrayImage.shape[0]/2)
-            rotatedFaceOrigin = faceOrigin.rotatePointClockwise(originalImageCenter, relativeAngle)
+            rotatedFaceOrigin = faceOrigin.rotatePointClockwise(originalImageCenter, relativeCounterClockwiseAngle)
             rotatedFaceOrigin = rotatedFaceOrigin.projectPoint(originalImageCenter, rotatedImageCenter)
             
             
@@ -293,7 +302,7 @@ class ImageManager:
             leftEye.draw(debugOriginalImage, (255,0,255), 2)
             rightEye.draw(debugOriginalImage, (0,255,255), 2)
             cv.circle(debugOriginalImage, faceOrigin.exportCoordinates(), 0, (0, 255, 0), 20)
-            debugRotatedOriginalImage = rotateClockwise(debugOriginalImage, relativeAngle)
+            debugRotatedOriginalImage = rotateClockwise(debugOriginalImage, relativeCounterClockwiseAngle)
             cv.circle(debugRotatedOriginalImage, rotatedFaceOrigin.exportCoordinates(), 0, (255, 255, 255), 12)
             # DEBUG step --- DEBUG step --- DEBUG step --- DEBUG step --- DEBUG step --- DEBUG step --- DEBUG step --- DEBUG step --- 
             
@@ -329,7 +338,7 @@ class ImageManager:
 
 
             # find the face in the cropped Area
-            detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors)
+            detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors, minSize = self.HARDCODED_faceMinDimensions, maxSize = self.HARDCODED_faceMaxDimensions)
 
 
             # DEBUGING AREA
@@ -343,7 +352,7 @@ class ImageManager:
             if len(detectedFaces) == 0:
                 # Scan the image upside down in case of upside down faces
                 rotatedCrop = rotateClockwise(rotatedCrop, 180)
-                detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors)
+                detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors, minSize = self.HARDCODED_faceMinDimensions, maxSize = self.HARDCODED_faceMaxDimensions)
                 if len(detectedFaces) == 0:
                     continue
                 boolUpSideDown = True
@@ -365,7 +374,7 @@ class ImageManager:
 
                 # Scan the image upside down in case of upside down faces
                 rotatedCrop = rotateClockwise(rotatedCrop, 180)
-                detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors)
+                detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors, minSize = self.HARDCODED_faceMinDimensions, maxSize = self.HARDCODED_faceMaxDimensions)
                 if len(detectedFaces) == 0:
                     continue
                 boolUpSideDown = True
@@ -380,9 +389,15 @@ class ImageManager:
 
                 if biggestFace[2] ** 2 + biggestFace[3] ** 2 < (faceMinRadius * 2) ** 2:
                     continue
+            
+            # if the face found was upside down, then face angle = eye's relative angle + 180
+            if boolUpSideDown:
+                counterClockwiseFaceAngle = relativeCounterClockwiseAngle + 180
+            # if not then = eye's relative angle
+            else:
+                counterClockwiseFaceAngle = relativeCounterClockwiseAngle
 
-
-            biggestFace = DetectedArea((biggestFace[0],biggestFace[1]), (biggestFace[2], biggestFace[3]))
+            biggestFace = DetectedFace((biggestFace[0],biggestFace[1]), (biggestFace[2], biggestFace[3]), counterClockwiseFaceAngle)
 
             
             if boolUpSideDown:
@@ -392,7 +407,7 @@ class ImageManager:
             biggestFace.draw(debugRotatedCrop, (0, 0, 255), 2)
             cv.imshow("Potential face " + str(debugPotentialFaceNumber), resizeMinTo(debugRotatedCrop, 250))
 
-            debugArrayFaces.append((biggestFace.copy(), rotatedFaceCenter, croppedCenter, rotatedImageCenter, relativeAngle, originalImageCenter)) 
+            debugArrayFaces.append((biggestFace.copy(), rotatedFaceCenter, croppedCenter, rotatedImageCenter, relativeCounterClockwiseAngle, originalImageCenter)) 
                 
             
             debugPotentialFaceNumber = debugPotentialFaceNumber + 1
@@ -426,15 +441,16 @@ class ImageManager:
             halfFaceDimensions = (eyeAverageRadius * 4, eyeAverageRadius * 5, eyeAverageRadius * 5)
             faceMinRadius = eyeAverageRadius * 3
 
-            # relative angle range from 270 -> 0 -> 90 degree because faces usually aren't up side down, still this function takes care of that case also
-            relativeAngle = (leftEye.center.relativeAngle(rightEye.center) + 90) % 180 - 90
+            # relative angle is the relative angle of the right eye to the left eye, but I limit the ranges from 270 -> 0 -> 90 degree because faces usually aren't up side down, 
+            # still this function takes care of that case also (scan it upside down when find no face)
+            relativeCounterClockwiseAngle = (leftEye.center.relativeCounterClockwiseAngle(rightEye.center) + 90) % 180 - 90
             originalImageCenter = Point(self.grayImage.shape[1]/2, self.grayImage.shape[0]/2)
             faceOrigin = Point((leftEye.center.x + rightEye.center.x)/2,(leftEye.center.y + rightEye.center.y)/2)
            
             # Rotate the face origin point and the image such that the face is straightened up
-            rotatedGrayImage = rotateClockwise(self.grayImage, relativeAngle)
+            rotatedGrayImage = rotateClockwise(self.grayImage, relativeCounterClockwiseAngle)
             rotatedImageCenter = Point(rotatedGrayImage.shape[1]/2, rotatedGrayImage.shape[0]/2)
-            rotatedFaceOrigin = faceOrigin.rotatePointClockwise(originalImageCenter, relativeAngle).projectPoint(originalImageCenter, rotatedImageCenter)
+            rotatedFaceOrigin = faceOrigin.rotatePointClockwise(originalImageCenter, relativeCounterClockwiseAngle).projectPoint(originalImageCenter, rotatedImageCenter)
 
             # Crop the potential face out
             cropRangeMinY = int(max(0, rotatedFaceOrigin.y - halfFaceDimensions[1]))
@@ -458,7 +474,7 @@ class ImageManager:
 
 
             # find the face in the cropped Area
-            detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors)
+            detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors, minSize = self.HARDCODED_faceMinDimensions, maxSize = self.HARDCODED_faceMaxDimensions)
             boolUpSideDown = False
 
 
@@ -466,7 +482,7 @@ class ImageManager:
             if len(detectedFaces) == 0:
                 # Scan the image upside down
                 rotatedCrop = rotateClockwise(rotatedCrop, 180)
-                detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors)
+                detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors, minSize = self.HARDCODED_faceMinDimensions, maxSize = self.HARDCODED_faceMaxDimensions)
                 if len(detectedFaces) == 0:
                     continue
                 boolUpSideDown = True
@@ -488,7 +504,7 @@ class ImageManager:
 
                 # Scan the image upside down in case of upside down faces
                 rotatedCrop = rotateClockwise(rotatedCrop, 180)
-                detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors)
+                detectedFaces = self.haarcascade_face.detectMultiScale(rotatedCrop, scaleFactor, minNeighbors, minSize = self.HARDCODED_faceMinDimensions, maxSize = self.HARDCODED_faceMaxDimensions)
                 if len(detectedFaces) == 0:
                     continue
                 boolUpSideDown = True
@@ -505,31 +521,63 @@ class ImageManager:
                 if biggestFace[2] ** 2 + biggestFace[3] ** 2 < (faceMinRadius * 2) ** 2:
                     continue
 
+
+
+            biggestFace = DetectedFace((biggestFace[0],biggestFace[1]), (biggestFace[2], biggestFace[3]))
             
-            biggestFace = DetectedArea((biggestFace[0],biggestFace[1]), (biggestFace[2], biggestFace[3]))
             
+            
+
 
             if boolUpSideDown:
                 biggestFace.rotateAreaClockwise(croppedCenter, 180)
 
             # Convert biggestFace coordinates from being in the cropped image to the original image
-            biggestFace.projectArea(croppedCenter, rotatedFaceOrigin)
-            biggestFace.rotateAreaCounterClockwise(rotatedImageCenter, relativeAngle)
+            biggestFace.projectArea(croppedCenter, rotatedFaceCenter)
+            biggestFace.rotateAreaCounterClockwise(rotatedImageCenter, relativeCounterClockwiseAngle)
             biggestFace.projectArea(rotatedImageCenter, originalImageCenter)
+
+
+            
+            # if the face found was upside down, then face angle = eye's relative angle + 180, the eyes are swapped
+            if boolUpSideDown:
+                counterClockwiseFaceAngle = (relativeCounterClockwiseAngle + 180) % 360
+                biggestFace.counterClockwiseAngle = counterClockwiseFaceAngle
+                biggestFace.leftEye = rightEye
+                biggestFace.rightEye = leftEye
+            # if not then = eye's relative angle, the eyes are in the same order
+            else:
+                counterClockwiseFaceAngle = relativeCounterClockwiseAngle
+                biggestFace.counterClockwiseAngle = counterClockwiseFaceAngle
+                biggestFace.leftEye = leftEye
+                biggestFace.rightEye = rightEye
+            
 
             faces.append(biggestFace)
 
         return faces
 
 
-    def findFaces(self, scaleFactor, minNeighbors):
+    def findFacesCounterClockwiseAngle(self, angle, scaleFactor, minNeighbors):
         """
         Find faces in the image and return them as detectedArea objects in an array
+            :param angle: counter clockwise angle by which the image is rotated
             :param scaleFactor: paramter for detectMultiScale
             :param minNeighbors: parameter for detectMultiScale
-            :return an array of faces as detectedArea objects
+            :return an array of faces as detectedFace objects
         """
-        return self.findFacesUsingPairOfEyes(self.findPairsOfEyes(scaleFactor, minNeighbors), scaleFactor, minNeighbors)
+        return self.findFacesUsingPairOfEyes(self.findPairsOfEyesCounterClockwiseAngle(angle, scaleFactor, minNeighbors), scaleFactor, minNeighbors)
+
+
+    def findFacesCounterClockwiseMultipleAngles(self, angles, scaleFactor, minNeighbors):
+        """
+        Find faces in the image and return them as detectedArea objects in an array
+            :param angles: counter clockwise angles by which the image is rotated
+            :param scaleFactor: paramter for detectMultiScale
+            :param minNeighbors: parameter for detectMultiScale
+            :return an array of faces as detectedFace objects
+        """
+        return self.findFacesUsingPairOfEyes(self.findPairsOfEyesCounterClockwiseMultipleAngles(angles, scaleFactor, minNeighbors), scaleFactor, minNeighbors)
 
                 
 

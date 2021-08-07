@@ -36,7 +36,9 @@ font = cv.FONT_HERSHEY_SIMPLEX
 
 # x is horizontal, y is vertical
 
-capture = cv.VideoCapture('http://192.168.1.17:8080/video')
+# capture = cv.VideoCapture('http://192.168.1.17:8080/video')
+
+capture = cv.VideoCapture(r'D:\workspace\git\Python_FacialReg\FacialDetection\testingParts\testVideos\FacialDetection_TestCase.mp4')
 # diagonal_len = math.sqrt(capture.shape[0]^2 + capture.shape[1]^2)
 # rotated_grayFrame = np.zeros((diagonal_len,diagonal_len), dtype = 'uint8')
 # rotated_grayFrame = (rotated_grayFrame.shape[0]/2, rotated_grayFrame.shape[1]/2)

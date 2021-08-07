@@ -1,4 +1,4 @@
-from helperFunctions import resizeToMin500
+from helperFunctions import *
 import cv2 as cv
 import math
 from datetime import datetime
@@ -24,17 +24,18 @@ capture = cv.VideoCapture('http://192.168.1.17:8080/video')
 
 while True:
     isTrue, frame = capture.read()
-
-    resizeToMin500(frame)
+    print("debug ", isTrue)
+    resizeMinTo500(frame)   
 
     imgMgnr = ImageManager(frame)
 
-    imgMgnr.findPairsOfEyes(1.2, 10)
+    eyes = imgMgnr.findPairsOfEyesCounterClockwiseMultipleAngles((0,90), 1.5, 10)
 
     
 
-    for eye in imgMgnr.eyes:
-        eye.draw(frame,(0,255,0), 2)
+    for eye in eyes:
+        eye[0].draw(frame,(0,255,0), 2)
+        eye[1].draw(frame,(0,255,0), 2)
 
     cv.imshow('Video', frame)
     

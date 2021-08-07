@@ -6,8 +6,8 @@ from ImageManager import ImageManager
 from helperFunctions import *
 
 
-image = cv.imread(r'D:\workspace\git\Python_FacialReg\FacialDetection\testingParts\testImages\people.jpg')
-image = resizeMinTo(image, 700)
+image = cv.imread(r'D:\workspace\git\Python_FacialReg\FacialDetection\testingParts\testImages\people_half_flipped.jpg')
+image = resizeMinTo(image, 1000)
 imgMngr = ImageManager(image)        
 
 eyesDetector = imgMngr.haarcascade_eye
@@ -28,7 +28,7 @@ angle = 0
 rotatedImage = rotateCounterClockwise(image, angle)
 
 
-(detected0, rotatedCenter0) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(eyesDetector, angle, scaleFactor, minNeighbors)
+(detected0, rotatedCenter0) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(eyesDetector, imgMngr.HARDCODED_eyeMinDimensions, imgMngr.HARDCODED_eyeMaxDimensions, angle, scaleFactor, minNeighbors)
 
 for detectedArea in detected0:
     detectedArea.draw(rotatedImage, (0,255,0), thickness= 2)
@@ -42,7 +42,7 @@ angle = 90
 rotatedImage = rotateCounterClockwise(image, angle)
 
 
-(detected90, rotatedCenter90) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(eyesDetector, angle, scaleFactor, minNeighbors)
+(detected90, rotatedCenter90) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(eyesDetector, imgMngr.HARDCODED_eyeMinDimensions, imgMngr.HARDCODED_eyeMaxDimensions, angle, scaleFactor, minNeighbors)
 
 for detectedArea in detected90:
     detectedArea.draw(rotatedImage, (255,0,0), thickness= 2)
@@ -56,7 +56,7 @@ angle = 180
 rotatedImage = rotateCounterClockwise(image, angle)
 
 
-(detected180, rotatedCenter180) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(eyesDetector, angle, scaleFactor, minNeighbors)
+(detected180, rotatedCenter180) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(eyesDetector, imgMngr.HARDCODED_eyeMinDimensions, imgMngr.HARDCODED_eyeMaxDimensions, angle, scaleFactor, minNeighbors)
 
 for detectedArea in detected180:
     detectedArea.draw(rotatedImage, (0,0,255), thickness= 2)
@@ -71,7 +71,7 @@ angle = 270
 rotatedImage = rotateCounterClockwise(image, angle)
 
 
-(detected270, rotatedCenter270) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(eyesDetector, angle, scaleFactor, minNeighbors)
+(detected270, rotatedCenter270) = imgMngr.HELPER_runHaarDetectionCounterClockwiseAngle(eyesDetector, imgMngr.HARDCODED_eyeMinDimensions, imgMngr.HARDCODED_eyeMaxDimensions, angle, scaleFactor, minNeighbors)
 
 for detectedArea in detected270:
     detectedArea.draw(rotatedImage, (255,255,0), thickness= 2)
@@ -280,7 +280,17 @@ detectedFaces = imgMngr.findFacesUsingPairOfEyes(detectedPairs, 1.1, 10)
 i = 0
 for face in detectedFaces:
     face.draw(rotatedImage, (255, 255, 255), 2)
-    cv.putText(rotatedImage, str(i), face.upperLeft.exportCoordinates(), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    coord = face.upperLeft.exportCoordinates()
+    cv.putText(rotatedImage, str(i), coord, cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    cv.putText(rotatedImage, str(f"{face.counterClockwiseAngle:0.2f}"), (coord[0] - 10, coord[1] - 50), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
+
+    face.leftEye.draw(rotatedImage, (255, 255, 0), 2)
+    coord = face.leftEye.upperLeft.exportCoordinates()
+    cv.putText(rotatedImage, "left", (coord[0], coord[1] - 10), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
+    face.rightEye.draw(rotatedImage, (0, 255, 255), 2)
+    coord = face.rightEye.upperLeft.exportCoordinates()
+    cv.putText(rotatedImage, "right", (coord[0], coord[1] - 10), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
     i = i + 1
 
 cv.imshow("FindFacesUsingPairOfEyes (supposed to look like DebugFindFaces: Final faces)", resizeMinTo500(rotatedImage))
