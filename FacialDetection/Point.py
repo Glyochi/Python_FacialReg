@@ -116,7 +116,7 @@ class Point:
         return Point(projectedX, projectedY)
 
     
-    def relativeAngle(self, otherPoint):
+    def relativeCounterClockwiseAngle(self, otherPoint):
         """
         Calculate the angle the otherPoint creates if the self Point was the origin.
         The function ONLY return positive angle. If it returns -1 that means otherPoint
