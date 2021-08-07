@@ -1,19 +1,25 @@
 from Point import Point
 import cv2 as cv
 
+"""
+NOTE:
+    Only faces have their own class DetectedFace because I want to keep track of the angle of the face using the relative angle between the two eyes (and potentially an eye and a nose or nose and mouth, etc)
+    The other facial features such as eyes, noses, mouths dont need to have their own class and can just use DetectedArea to store their locations
+"""
+
+
 class DetectedArea:
     """
-    Object that stores the center of a rectangle encapsulates a detected object returned by cv.detectMultiscale(...), 
-    the angle of the image when it was detected, and the dimensions of the rectangle.
-    OpenCV returns 4-tuples (x,y,w,h) of rectangle marking down where the detected objects are. These information will be translated to many DetectedArea objects.
-    DetectedArea will be used to compare with other DetectedArea.
+    Object that stores the center of a rectangle encapsulates a detected object returned by cv.detectMultiscale(...), and the dimensions of the rectangle.
+    OpenCV haarcascade detection returns 4-tuples (x,y,w,h) of rectangle marking down where the detected objects are. These information will be translated 
+    to DetectedArea objects.
     """
     def __init__(self, upperLeftPoint = (0,0), dimensions = (0,0)):
         """
         Construct a DetectedArea obj.
             :param upperLeftPoint (x,y): the 2-tuple coordinates of the upper left point of the rectangle encapsulates detected objects.
-            :param angle: the angle of the image when the detected object was found and returned by openCV.
             :param dimension (w,h): the dimension of the box encapsulates the detected object.
+            :param angle: the angle of the image when the detected object was found and returned by openCV.
         """
         self.dimensions = dimensions
         self.upperLeft = Point(upperLeftPoint[0], upperLeftPoint[1])
@@ -104,15 +110,27 @@ class DetectedArea:
         if minSize > maxSize * scale:
             return True
         return False
+    
+    def appropriateDistanceTo(self, otherArea, minAverageRadiusDistScale, maxAverageRadiusDistScale):
+        """
+        Decide whether the two detectedAreas distance to each other is appropriate.
+            :param otherArea: the other detectedArea object
+            :param minAverageRadiusDistScale: the mininum multiplier for the average radius between two detectedAreas 
+            :param maxAverageRadiusDistScale: the maximum multiplier for the average radius between two detectedAreas 
+            :return True if the distance between two objects is between average radius * minimum multiplier and average radius * maximum multiplier, False otherwise
+        """
+        dist = self.center.distTo(otherArea.center)
+        averageRadius = (self.radius + otherArea.radius)/2
+        if dist < maxAverageRadiusDistScale * averageRadius and dist > minAverageRadiusDistScale * averageRadius:
+            return True
+        return False
 
     def merge(self, otherArea):
         """
         Merge another area into itself to make a more accurate area. This does not delete the other area object. (NOT FINALIZED CONDITION PARAMETERS)
+        For right now, merge will trust the user to call appropriately since all it does is make the caller object becomes the smaller object between the twos.
             :param otherArea: the DetectedArea that we are merging with
         """
-        # print("DetectedArea merge: NOT FINALIZED CONDITION PARAMETERS")
-        # For right now, we just use the one with the smaller radius
-
         if self.center.distTo(self.upperLeft) > otherArea.center.distTo(otherArea.upperLeft):
             self = otherArea
         
@@ -134,3 +152,36 @@ class DetectedArea:
         canvas = cv.line(canvas, lowerRight, lowerLeft, color, thickness = thickness)
         canvas = cv.line(canvas, lowerLeft, upperLeft, color, thickness = thickness)
         
+
+
+class DetectedFace(DetectedArea):
+    def __init__(self, upperLeftPoint = (0,0), dimensions = (0,0), angle = None):
+        """
+        Create an detectedFace object that is a detectedArea object but with angle property.
+            :param upperLeftPoint (x,y): the 2-tuple coordinates of the upper left point of the rectangle encapsulates detected objects.
+            :param dimension (w,h): the dimension of the box encapsulates the detected object.
+            :param angle: the angle of the image when the detected object was found and returned by openCV.
+        """
+        super().__init__(upperLeftPoint=upperLeftPoint, dimensions=dimensions)
+        # face's angle is the counter clockwise angle of the right eye to the left eye
+        self.counterClockwiseAngle = angle
+        self.leftEye = None
+        self.rightEye = None
+        
+    
+    def copy(self):
+        """
+        Return a deep copy of the detectedArea caller
+            :return a deep copy of itself
+        """
+        copyArea = DetectedFace()
+        copyArea.dimensions = (self.dimensions[0], self.dimensions[1])
+        copyArea.upperLeft = self.upperLeft.copy()
+        copyArea.upperRight = self.upperRight.copy()
+        copyArea.lowerLeft = self.lowerLeft.copy()
+        copyArea.lowerRight = self.lowerRight.copy()
+        copyArea.center = self.center.copy()
+        copyArea.counterClockwiseAngle = self.counterClockwiseAngle
+        copyArea.leftEye = self.leftEye
+        copyArea.rightEye = self.rightEye
+        return copyArea
