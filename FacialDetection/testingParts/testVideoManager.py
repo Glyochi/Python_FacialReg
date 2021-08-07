@@ -15,10 +15,10 @@ import time
 # videoMgnr.displayStandardMethod()
 
 
-videoMgnr = VideoManager(30, r'D:\workspace\git\Python_FacialReg\FacialDetection\testingParts\testVideos\FacialDetection_TestCase.mp4')
+# videoMgnr = VideoManager(30, r'D:\workspace\git\Python_FacialReg\FacialDetection\testingParts\testVideos\FacialDetection_TestCase.mp4')
 # videoMgnr = VideoManager(30, 'http://192.168.1.17:8080/video')
 # videoMgnr.displayHowBadUnoptimizedProcessIs()
-videoMgnr.displayOptimizedMethod()
+# videoMgnr.displayOptimizedMethod()
 # videoMgnr.displayEvenMoreOptimizedMethod()
 # videoMgnr.displayStandardMethod()
 
@@ -27,7 +27,8 @@ videoMgnr = VideoManager(30, r'D:\workspace\git\Python_FacialReg\FacialDetection
 # videoMgnr = VideoManager(30, r'D:\workspace\git\Python_FacialReg\FacialDetection\testingParts\testVideos\FacialDetection_TestCase.mp4')
 # videoMgnr = VideoManager(30, 'http://192.168.1.17:8080/video')
 # videoMgnr.displayHowBadUnoptimizedProcessIs()
-# videoMgnr.displayOptimizedMethod()
+videoMgnr.displayOptimizedMethod()
+videoMgnr = VideoManager(30, r'D:\workspace\git\Python_FacialReg\FacialDetection\testingParts\testVideos\Gly_Speedy.mp4')
 videoMgnr.displayEvenMoreOptimizedMethod()
 # videoMgnr.displayStandardMethod()
 # videoMgnr.displayNonInterferedMethod()
